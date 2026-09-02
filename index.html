@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Embudo de Ventas Apex Boxing</title>
+    <!-- Librería para exportar a imagen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -132,6 +133,7 @@
     </header>
 
     <main>
+        <!-- LOBBY DE ACCESO GENERAL -->
         <section id="loginView" class="card" style="max-width: 400px; margin: 3rem auto;">
             <h2 style="margin-bottom: 1.2rem; color: var(--accent); text-align: center; font-size: 1rem; letter-spacing: 2px;">ACCESO AL SISTEMA</h2>
             <div class="form-group"><label>Identificador (Usuario / Admin / Gerente)</label><input type="text" id="universalIdentifier" placeholder="Ej: admin, gerente o teléfono"></div>
@@ -139,6 +141,7 @@
             <button class="btn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="universalLogin()">Ingresar</button>
         </section>
 
+        <!-- PANEL DE ADMINISTRADOR / GERENTE -->
         <section id="adminDashboard" class="hidden">
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchAdminTab('stores')">Tiendas</button>
@@ -148,6 +151,7 @@
                 <button class="tab-btn admin-only-tab" onclick="switchAdminTab('managers')">Gerentes</button>
             </div>
 
+            <!-- Tab Tiendas -->
             <div id="adminTab-stores" class="admin-tab-content">
                 <div class="sub-tabs">
                     <button class="sub-tab-btn active" onclick="switchAdminSubTab('stores', 'form')">Registrar / Editar</button>
@@ -172,6 +176,7 @@
                 </div>
             </div>
 
+            <!-- Tab Promociones -->
             <div id="adminTab-promos" class="admin-tab-content hidden">
                 <div class="sub-tabs">
                     <button class="sub-tab-btn active" onclick="switchAdminSubTab('promos', 'form')">Crear / Editar Campaña</button>
@@ -206,6 +211,7 @@
                 </div>
             </div>
 
+            <!-- Tab Bonos -->
             <div id="adminTab-users" class="admin-tab-content hidden">
                 <div class="sub-tabs">
                     <button class="sub-tab-btn active" onclick="switchAdminSubTab('bonos', 'form')">Otorgar Bono</button>
@@ -233,6 +239,7 @@
                 </div>
             </div>
 
+            <!-- Tab Embudo (Solo Admin Maestro) -->
             <div id="adminTab-funnel" class="admin-tab-content hidden">
                 <div class="card">
                     <h3 style="margin-bottom: 1.2rem; color: var(--accent); font-size: 0.95rem; letter-spacing: 1px;">ANÁLISIS COMERCIAL GLOBAL</h3>
@@ -249,6 +256,7 @@
                 </div>
             </div>
 
+            <!-- Tab Gestionar Gerentes (Solo Admin Maestro) -->
             <div id="adminTab-managers" class="admin-tab-content hidden">
                 <div class="card">
                     <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.95rem; letter-spacing: 1px;">CREAR GERENTE DE VENTAS</h3>
@@ -269,6 +277,7 @@
             </div>
         </section>
 
+        <!-- PANEL DE USUARIO FINAL -->
         <section id="userDashboard" class="hidden">
             <div class="card" style="text-align: center;">
                 <h2 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 1.1rem; letter-spacing: 1px;">¡PREMIO RETO APEX SUPERADO!</h2>
@@ -276,6 +285,7 @@
             </div>
         </section>
 
+        <!-- PANEL DE ESTABLECIMIENTO / PATROCINADOR -->
         <section id="establishmentDashboard" class="hidden">
             <div class="tabs" id="estTabsContainer" style="margin-bottom: 1.5rem;">
                 <button class="tab-btn active" onclick="switchEstTab('requests')">Bandeja Caja</button>
@@ -283,6 +293,7 @@
                 <button class="tab-btn est-owner-only" onclick="switchEstTab('crm')">CRM Leads</button>
             </div>
 
+            <!-- Tab Bandeja -->
             <div id="estTab-requests" class="est-tab-content card">
                 <h2 style="color: var(--accent); margin-bottom: 1rem; font-size: 0.95rem; letter-spacing: 1px;" id="estDashboardTitle">BANDEJA DE REDENCIÓN</h2>
                 <div class="funnel-stats" style="margin: 1rem 0;">
@@ -295,6 +306,7 @@
                 </table>
             </div>
 
+            <!-- Tab Cajeros (Solo Dueño) -->
             <div id="estTab-employees" class="est-tab-content card hidden est-owner-only">
                 <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.95rem; letter-spacing: 1px;" id="empFormTitle">GESTIÓN DE CAJEROS</h3>
                 <input type="hidden" id="editEmpId" value="">
@@ -310,6 +322,7 @@
                 </table>
             </div>
 
+            <!-- Tab CRM Leads (Solo Dueño) -->
             <div id="estTab-crm" class="est-tab-content card hidden est-owner-only">
                 <h3 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 0.95rem; letter-spacing: 1px;">BASE DE DATOS DE LEADS</h3>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">✨ <em>"Mejora tu promoción para aumentar tus conversiones. A mejor oferta comercial, mayor porcentaje de cierre."</em></p>
@@ -326,7 +339,6 @@
     </main>
 
     <script>
-        // URL DE LA APLICACIÓN WEB DE GOOGLE APPS SCRIPT INTEGRADA
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbye7o9P3ic0IAGhCspjO--Wj0_aqrKxC5nA97Yj72xjoSLjFuuuiwSCik0JXvuiTSFB/exec";
 
         const DB = {
@@ -385,7 +397,6 @@
             }
         };
 
-        // Datos locales de respaldo si la nube no responde de inmediato al arrancar
         if (!localStorage.getItem('apex_establishments')) DB.data.establishments = [{ id: 'est_1', name: 'Aquapark Las Tortugas', pass: '1234', employees: [{id: 'emp_1', name: 'Cajero 1', pass: '1234'}] }];
         else DB.data.establishments = JSON.parse(localStorage.getItem('apex_establishments'));
 
