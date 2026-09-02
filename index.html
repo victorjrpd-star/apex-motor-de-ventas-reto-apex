@@ -60,6 +60,7 @@
             background: #ffffff; color: #000000; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.4rem;
         }
         .btn:hover { background: #e0e0e0; transform: translateY(-1px); }
+        .btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.6; }
         .btn-secondary { background: transparent; border: 1px solid var(--card-border); color: var(--text-main); }
         .btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: var(--text-muted); }
         .btn-danger { background: var(--accent-red); color: #fff; }
@@ -163,7 +164,7 @@
                     <input type="hidden" id="editStoreId" value="">
                     <div class="form-group"><label>Nombre del Local</label><input type="text" id="storeNameInput" placeholder="Ej: Aquapark Las Tortugas"></div>
                     <div class="form-group"><label>Contraseña de Acceso</label><input type="password" id="storePassInput" value="1234"></div>
-                    <button class="btn" id="storeSubmitBtn" onclick="saveStore()">Guardar Tienda</button>
+                    <button class="btn" id="storeSubmitBtn" onclick="saveStore(this)">Guardar Tienda</button>
                     <button class="btn btn-secondary hidden" id="storeCancelEditBtn" onclick="cancelStoreEdit()" style="margin-left: 0.5rem;">Cancelar</button>
                 </div>
                 
@@ -196,7 +197,7 @@
                         <div>
                             <div class="form-group"><label>Fondo (Imagen)</label><input type="file" id="promoImageFile" accept="image/*" onchange="handleImageUpload(event, 'bg')"><input type="hidden" id="promoImageBase64" value="https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600"></div>
                             <div class="form-group"><label>Código QR Universal</label><input type="file" id="promoQrFile" accept="image/*" onchange="handleImageUpload(event, 'qr')"><input type="hidden" id="promoQrBase64" value=""></div>
-                            <button class="btn" id="promoSubmitBtn" onclick="savePromo()" style="width: 100%; margin-top: 1rem; justify-content: center;">Guardar Campaña</button>
+                            <button class="btn" id="promoSubmitBtn" onclick="savePromo(this)" style="width: 100%; margin-top: 1rem; justify-content: center;">Guardar Campaña</button>
                             <button class="btn btn-secondary hidden" id="promoCancelEditBtn" onclick="cancelPromoEdit()" style="width: 100%; margin-top: 0.5rem; justify-content: center;">Cancelar</button>
                         </div>
                     </div>
@@ -225,7 +226,7 @@
                             <div class="form-group"><label>Nombre Beneficiario</label><input type="text" id="beneficiaryName" placeholder="Carlos Pérez"></div>
                             <div class="form-group"><label>Teléfono (Usuario)</label><input type="text" id="beneficiaryPhone" placeholder="3001234567"></div>
                             <div class="form-group"><label>Campaña Asociada</label><select id="assignPromoSelect"></select></div>
-                            <button class="btn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="generateUserAndCoupon()">Generar Bono Digital</button>
+                            <button class="btn" id="couponSubmitBtn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="generateUserAndCoupon(this)">Generar Bono Digital</button>
                         </div>
                     </div>
                 </div>
@@ -241,7 +242,7 @@
 
             <!-- Tab Embudo (Solo Admin Maestro) -->
             <div id="adminTab-funnel" class="admin-tab-content hidden">
-                <div class="card">
+                <div class="card" id="exportableFunnelCard">
                     <h3 style="margin-bottom: 1.2rem; color: var(--accent); font-size: 0.95rem; letter-spacing: 1px;">ANÁLISIS COMERCIAL GLOBAL</h3>
                     <div class="funnel-stats">
                         <div class="stat-card"><h3 id="statTotal">0</h3><p>Impactos de Marca</p></div>
@@ -252,8 +253,8 @@
                         <h4 style="color:var(--accent); font-size:0.85rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:1px;">Línea de Actividad</h4>
                         <div id="adminTimelineChart" style="max-height: 200px; overflow-y: auto;"></div>
                     </div>
-                    <button class="btn btn-secondary" onclick="generateReportImage()" style="margin-top: 1rem;">Exportar Reporte Ejecutivo</button>
                 </div>
+                <button class="btn btn-secondary" onclick="exportExecutiveReport()" style="margin-top: 0.5rem;">📥 Descargar Imagen de Reporte Ejecutivo</button>
             </div>
 
             <!-- Tab Gestionar Gerentes (Solo Admin Maestro) -->
@@ -265,7 +266,7 @@
                         <div class="form-group"><label>Usuario de Acceso</label><input type="text" id="newManagerUser" placeholder="Ej: gerente_ana"></div>
                         <div class="form-group"><label>Contraseña</label><input type="password" id="newManagerPass" value="gerente123"></div>
                     </div>
-                    <button class="btn" onclick="saveManagerAccount()" style="margin-top: 0.5rem;">Registrar Gerente</button>
+                    <button class="btn" id="managerSubmitBtn" onclick="saveManagerAccount(this)" style="margin-top: 0.5rem;">Registrar Gerente</button>
                 </div>
                 <div class="card">
                     <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.95rem; letter-spacing: 1px;">GERENTES AUTORIZADOS</h3>
@@ -314,7 +315,7 @@
                     <div class="form-group"><label>Nombre</label><input type="text" id="newEmpName" placeholder="Cajero 1"></div>
                     <div class="form-group"><label>Contraseña</label><input type="password" id="newEmpPass" value="1234"></div>
                 </div>
-                <button class="btn" id="empSubmitBtn" onclick="saveEmployeeAccount()" style="margin-bottom: 1.5rem;">Guardar Cajero</button>
+                <button class="btn" id="empSubmitBtn" onclick="saveEmployeeAccount(this)" style="margin-bottom: 1.5rem;">Guardar Cajero</button>
                 <button class="btn btn-secondary hidden" id="empCancelEditBtn" onclick="cancelEmpEdit()" style="margin-bottom: 1.5rem; margin-left: 0.5rem;">Cancelar</button>
                 <table>
                     <thead><tr><th>Nombre</th><th>Acciones</th></tr></thead>
@@ -566,25 +567,34 @@
             `).join('') || 'Sin gerentes';
         }
 
-        async function saveManagerAccount() {
+        async function saveManagerAccount(btn) {
             const name = document.getElementById('newManagerName').value.trim();
             const username = document.getElementById('newManagerUser').value.trim();
             const pass = document.getElementById('newManagerPass').value.trim();
             if(!name || !username || !pass) return alert('Completa todos los campos');
+
             let managers = DB.get('managers');
+            if(managers.some(m => m.username.toLowerCase() === username.toLowerCase())) {
+                return alert('⚠️ Ya existe un gerente registrado con ese usuario.');
+            }
+
+            btn.disabled = true;
             const newMgr = { id: 'mgr_' + Date.now(), name, username, pass };
             managers.push(newMgr);
             DB.set('managers', managers);
             localStorage.setItem('apex_managers', JSON.stringify(managers));
             await DB.saveRecord('Gerentes', newMgr);
+
             document.getElementById('newManagerName').value = '';
             document.getElementById('newManagerUser').value = '';
+            document.getElementById('newManagerPass').value = 'gerente123';
+            btn.disabled = false;
             loadManagersData();
             alert('¡Gerente registrado con éxito!');
         }
 
         async function deleteManager(mgrId) {
-            if(!confirm('¿Eliminar este gerente?')) return;
+            if(!confirm('⚠️ ¿Estás seguro de eliminar este gerente?')) return;
             let managers = DB.get('managers').filter(m => m.id !== mgrId);
             DB.set('managers', managers);
             localStorage.setItem('apex_managers', JSON.stringify(managers));
@@ -608,12 +618,18 @@
             }).join('');
         }
 
-        async function saveStore() {
+        async function saveStore(btn) {
             const editId = document.getElementById('editStoreId').value;
             const name = document.getElementById('storeNameInput').value.trim();
             const pass = document.getElementById('storePassInput').value.trim();
             if(!name) return;
+
             let ests = DB.get('establishments');
+            if(!editId && ests.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+                return alert('⚠️ Ya existe una tienda registrada con este nombre.');
+            }
+
+            btn.disabled = true;
             let storeObj;
             if(editId) {
                 let idx = ests.findIndex(e => e.id === editId);
@@ -630,8 +646,12 @@
             DB.set('establishments', ests);
             localStorage.setItem('apex_establishments', JSON.stringify(ests));
             await DB.saveRecord('Tiendas', { id: storeObj.id, name: storeObj.name, pass: storeObj.pass, createdAt: new Date().toISOString() });
+            
             document.getElementById('storeNameInput').value = '';
+            document.getElementById('storePassInput').value = '1234';
+            btn.disabled = false;
             loadAdminData();
+            alert('¡Tienda guardada con éxito!');
         }
 
         function editStore(id) {
@@ -649,12 +669,13 @@
         function cancelStoreEdit() {
             document.getElementById('editStoreId').value = '';
             document.getElementById('storeNameInput').value = '';
+            document.getElementById('storePassInput').value = '1234';
             document.getElementById('storeSubmitBtn').innerText = 'Guardar Tienda';
             document.getElementById('storeCancelEditBtn').classList.add('hidden');
         }
 
         async function deleteStore(id) {
-            if(!confirm('¿Eliminar tienda?')) return;
+            if(!confirm('⚠️ ¿Estás seguro de eliminar esta tienda y sus datos asociados?')) return;
             let ests = DB.get('establishments').filter(e => e.id !== id);
             DB.set('establishments', ests);
             localStorage.setItem('apex_establishments', JSON.stringify(ests));
@@ -672,7 +693,7 @@
             }).join('');
         }
 
-        async function savePromo() {
+        async function savePromo(btn) {
             const editId = document.getElementById('editPromoId').value;
             const title = document.getElementById('promoTitle').value.trim();
             const terms = document.getElementById('promoTerms').value.trim();
@@ -680,7 +701,9 @@
             const estId = document.getElementById('promoEstablishment').value;
             const img = document.getElementById('promoImageBase64').value;
             const qr = document.getElementById('promoQrBase64').value;
-            if(!title) return;
+            if(!title || !estId) return alert('Completa los campos obligatorios de la campaña.');
+
+            btn.disabled = true;
             let promos = DB.get('promos');
             let promoObj;
             if(editId) {
@@ -697,9 +720,13 @@
             DB.set('promos', promos);
             localStorage.setItem('apex_promos', JSON.stringify(promos));
             await DB.saveRecord('Promociones', promoObj);
+
             document.getElementById('promoTitle').value = '';
             document.getElementById('promoTerms').value = '';
+            document.getElementById('promoExpiryDaysVal').value = '30';
+            btn.disabled = false;
             loadAdminData();
+            alert('¡Campaña guardada con éxito!');
         }
 
         function editPromo(id) {
@@ -717,10 +744,11 @@
         function cancelPromoEdit() {
             document.getElementById('editPromoId').value = '';
             document.getElementById('promoTitle').value = '';
+            document.getElementById('promoTerms').value = '';
         }
 
         async function cancelCampaign(promoId) {
-            if(!confirm('¿Cancelar campaña?')) return;
+            if(!confirm('⚠️ ¿Estás seguro de cancelar esta campaña?')) return;
             let promos = DB.get('promos').filter(p => p.id !== promoId);
             DB.set('promos', promos);
             localStorage.setItem('apex_promos', JSON.stringify(promos));
@@ -737,11 +765,13 @@
             }).join('');
         }
 
-        async function generateUserAndCoupon() {
+        async function generateUserAndCoupon(btn) {
             const benName = document.getElementById('beneficiaryName').value.trim();
             const benPhone = document.getElementById('beneficiaryPhone').value.trim();
             const promo = DB.get('promos').find(p => p.id === document.getElementById('assignPromoSelect').value);
-            if(!benName || !benPhone || !promo) return alert('Completa los campos.');
+            if(!benName || !benPhone || !promo) return alert('Completa nombre, teléfono y selecciona una campaña.');
+
+            btn.disabled = true;
             const password = Math.floor(100000 + Math.random() * 900000).toString();
             let users = DB.get('users');
             const newObj = {
@@ -755,13 +785,16 @@
             DB.set('users', users);
             localStorage.setItem('apex_users', JSON.stringify(users));
             await DB.saveRecord('Bonos', newObj);
+
             document.getElementById('beneficiaryName').value = '';
             document.getElementById('beneficiaryPhone').value = '';
+            btn.disabled = false;
             loadAdminData();
-            alert(`✅ Bono generado. Tel: ${benPhone} | Pass: ${password}`);
+            alert(`✅ Bono generado con éxito.\nTeléfono: ${benPhone}\nPass: ${password}`);
         }
 
         async function revokeUser(id) {
+            if(!confirm('⚠️ ¿Estás seguro de revocar este bono?')) return;
             let users = DB.get('users');
             const idx = users.findIndex(u => u.id === id);
             if(idx !== -1 && users[idx].status !== 'redimido') { 
@@ -773,7 +806,7 @@
             }
         }
 
-        // --- EMBUDO ---
+        // --- EMBUDO CON EXPORTACIÓN REAL A IMAGEN ---
         function updateFunnelMetrics() {
             if(currentUser.role !== 'admin') return;
             let users = DB.get('users').filter(u => u.status !== 'eliminado');
@@ -783,7 +816,15 @@
             document.getElementById('adminTimelineChart').innerHTML = users.map(u => `<div class="timeline-bar"><span>${new Date(u.createdAt).toLocaleDateString()} - ${u.beneficiary}</span><span>${u.status.toUpperCase()}</span></div>`).join('') || 'Sin registros';
         }
 
-        function generateReportImage() { alert('Reporte generado'); }
+        function exportExecutiveReport() {
+            const card = document.getElementById('exportableFunnelCard');
+            html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#000000' }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Reporte_Ejecutivo_Apex_${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
 
         // --- USUARIO FINAL ---
         function loadUserBonuses() {
@@ -887,11 +928,13 @@
             `).join('') || 'Sin cajeros';
         }
 
-        async function saveEmployeeAccount() {
+        async function saveEmployeeAccount(btn) {
             if(!currentUser.isOwner) return;
             const name = document.getElementById('newEmpName').value.trim();
             const pass = document.getElementById('newEmpPass').value.trim();
             if(!name) return;
+
+            btn.disabled = true;
             let ests = DB.get('establishments');
             const idx = ests.findIndex(e => e.id === currentUser.id);
             if(idx !== -1) {
@@ -901,13 +944,18 @@
                 DB.set('establishments', ests);
                 localStorage.setItem('apex_establishments', JSON.stringify(ests));
                 await DB.saveRecord('Cajeros', { estId: ests[idx].id, empId: empObj.id, name: empObj.name, pass: empObj.pass });
+                
                 document.getElementById('newEmpName').value = '';
+                document.getElementById('newEmpPass').value = '1234';
+                btn.disabled = false;
                 loadEstablishmentEmployeesManagement();
+                alert('¡Cajero guardado con éxito!');
             }
         }
 
         async function deleteEmployee(empId) {
             if(!currentUser.isOwner) return;
+            if(!confirm('⚠️ ¿Estás seguro de eliminar este cajero?')) return;
             let ests = DB.get('establishments');
             const idx = ests.findIndex(e => e.id === currentUser.id);
             if(idx !== -1) {
