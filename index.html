@@ -1,384 +1,3 @@
-
-Gemini
-
-Chatear
-
-Spark
-beta
-Nueva conversación
-Buscar conversaciones
-Imágenes
-Vídeos
-Biblioteca
-Nuevo cuaderno
-APEX
-Glosario de ideas
-Sistema de Bonos Digitales con HTML
-Rama • Servidor Web ESP32 para Pad
-Servidor Web ESP32 para Pad
-Creación de Código HTML Interactivo
-Optimización de Visión por Computadora
-Rama • Modificación de Código Web y Colaboración
-Modificación de Código Web y Colaboración
-App Contable para Apex Boxing
-Rama • Tecnología y boxeo en Colombia
-Rama • Tecnología y boxeo en Colombia
-Tecnología y boxeo en Colombia
-Sistema de Tarjetas de Regalo
-Creación de Visor 3D de Boxeo
-Análisis Biomecánico Web Gratuito
-Arquitectura para Cronómetro de Apex
-Fórmula de matriz para correos activos
-Análisis de la fórmula E=mc²
-Diseño de Imagen para Apex Boxing
-Solucionar Error en Fuente Looker Studio
-Comprendiendo la Respiración Miofascial
-Bloqueo Dinámico en Looker Studio
-Control de Membresías en Sheets
-Plan de Entrenamiento Apex Boxing
-Acompañamiento versus Refuerzo en Boxeo
-Condicionar Fórmula en Google Sheets
-Creación de Videos Virales con IA
-Guion para Reto Apex
-Iconos para el Reto Apex
-Imagen Condicional en Looker Studio
-Ruta a la Ciclovía de Cali
-Unificación de formularios en Google Sheets
-Asesoría para análisis de sistemas
-Por qué se usa silicio en microchips
-Video Fatalidad Mortal Kombat
-Recreación de Imagen con Logos y Fondo
-Generación de Plancha para Guantes PVC
-Guantes Apex Boxing Personalizados Diseño
-Apex Boxing Logo on Circuit Background
-El Buen Operador: Más Allá de la Técnica
-Cajas de Pizza Redondas: ¿Realidad o Excepción?
-Análisis y Remoción de Estampados de Guantes
-Ajuste de Medidas a 10 cm
-Formulario de Comportamiento y Disciplina
-Spotify: Un dispositivo a la vez
-Gemini's Capabilities and Offerings
-Precio Hoja Zinc Techo Cali
-Luces de teclado y cursor encendidas
-Cetosis Robusta: Mantener Músculo y Volumen
-Cinta Kinesiológica: Análisis Pragmático y Porcentual
-Mentalidad de Dios: Poder y Dominio
-Cinesiología: Estudio del Movimiento Humano
-Bloqueo en Proyecto Apasionante: Diagnóstico
-Reto Apex: Seguridad y Organización
-Convertir respuestas a 0s y 1s
-Terremoto en Chocó: Impacto y Respuesta
-Guía de Uso de Cinta Kinesiológica
-Cómo Poner Venda Fisiológica Correctamente
-Terremoto en Cali y Argelia, Valle
-Cali Ciclovía: Ritmo Urbano y Bienestar
-Vista Aérea de Retorno Vial en Cali
-Hornos de Microondas Industriales Continuos
-Tráiler: Traducción y Definición
-Base Giratoria para Grabación 360°
-Significado de Lucifer: Portador de Luz
-Infografía Clase Boxeo: Bloques y Autoevaluación
-Definición Concisa de Conglomerado
-Flash Burger: Viabilidad y Operaciones
-Suavizar Vendas de Boxeo Rígidas
-Llanta Trasera Suzuki DR 150
-Propuesta Reto Apex Ciclovía Cali
-Bebedero de chupete para aves
-Portátil Resistente para Diseño y Programación
-Conversación con Gemini
-Ahora generar la actualización en Java script para el script motor de ventas Apex.
-
-Aquí tienes el código completo y actualizado para tu backend en Google Apps Script (Código.gs).
-
-Esta versión incluye las mejoras estructuradas para que el procesamiento de datos guarde correctamente los campos clave (como el username de los gerentes y la estructura unificada de registros por ID):
-
-JavaScript
-function doGet(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var action = e.parameter.action;
-  
-  if (action === "get_all") {
-    var data = {
-      tiendas: getSheetData(ss.getSheetByName("Tiendas")),
-      promociones: getSheetData(ss.getSheetByName("Promociones")),
-      bonos: getSheetData(ss.getSheetByName("Bonos")),
-      gerentes: getSheetData(ss.getSheetByName("Gerentes")),
-      cajeros: getSheetData(ss.getSheetByName("Cajeros"))
-    };
-    return ContentService.createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify({status: "ok"}))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  try {
-    var contents = JSON.parse(e.postData.contents);
-    var sheetName = contents.sheet;
-    var action = contents.action;
-    var payload = contents.payload;
-    
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(sheetName);
-    
-    if (!sheet) {
-      return ContentService.createTextOutput(JSON.stringify({status: "error", message: "Sheet not found"}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    
-    if (action === "save") {
-      var idField = (sheetName === "Cajeros") ? "empId" : "id";
-      var recordId = payload[idField] || payload.id;
-      var rowIndex = -1;
-      
-      // Buscar si el registro ya existe para actualizarlo o insertarlo
-      if (recordId && sheet.getLastRow() > 1) {
-        var data = sheet.getDataRange().getValues();
-        var idColIndex = headers.indexOf(idField);
-        if (idColIndex === -1) idColIndex = headers.indexOf("id");
-        
-        for (var i = 1; i < data.length; i++) {
-          if (data[i][idColIndex] == recordId) {
-            rowIndex = i + 1;
-            break;
-          }
-        }
-      }
-      
-      var rowValues = headers.map(function(header) {
-        return payload[header] !== undefined ? payload[header] : "";
-      });
-      
-      if (rowIndex > -1) {
-        sheet.getRange(rowIndex, 1, 1, rowValues.length).setValues([rowValues]);
-      } else {
-        sheet.appendRow(rowValues);
-      }
-      
-    } else if (action === "delete") {
-      var recordId = payload.id || payload.empId;
-      if (recordId && sheet.getLastRow() > 1) {
-        var data = sheet.getDataRange().getValues();
-        var headers = data[0];
-        var idColIndex = headers.indexOf("id");
-        if (idColIndex === -1) idColIndex = headers.indexOf("empId");
-        
-        for (var i = 1; i < data.length; i++) {
-          if (data[i][idColIndex] == recordId) {
-            sheet.deleteRow(i + 1);
-            break;
-          }
-        }
-      }
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({status: "success"}))
-      .setMimeType(ContentService.MimeType.JSON);
-      
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function getSheetData(sheet) {
-  if (!sheet || sheet.getLastRow() <= 1) return [];
-  var range = sheet.getDataRange();
-  var values = range.getValues();
-  var headers = values[0];
-  var result = [];
-  
-  for (var i = 1; i < values.length; i++) {
-    var row = values[i];
-    var obj = {};
-    for (var j = 0; j < headers.length; j++) {
-      obj[headers[j]] = row[j];
-    }
-    result.push(obj);
-  }
-  return result;
-}
-
-function setupDatabase() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var structure = {
-    "Tiendas": ["id", "name", "pass", "createdAt"],
-    "Promociones": ["id", "title", "terms", "expiryDays", "estId", "status", "img", "qr"],
-    "Bonos": ["id", "beneficiary", "phone", "password", "promoId", "promoTitle", "promoTerms", "promoImg", "promoQr", "estId", "status", "createdAt", "expiryDate", "requestedAt", "redeemedAt", "auditedBy", "rejectReason"],
-    "Gerentes": ["id", "name", "username", "pass"],
-    "Cajeros": ["estId", "empId", "name", "pass"]
-  };
-
-  for (var sheetName in structure) {
-    var sheet = ss.getSheetByName(sheetName);
-    if (!sheet) {
-      sheet = ss.insertSheet(sheetName);
-    }
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(structure[sheetName]);
-      sheet.getRange(1, 1, 1, structure[sheetName].length).setFontWeight("bold").setBackground("#d4af37");
-    }
-  }
-}
-Pasos para aplicarlo:
-Entra a tu proyecto en Google Apps Script.
-
-Reemplaza todo el contenido del archivo Código.gs por el código anterior.
-
-Haz clic en el botón de Guardar (icono de disquete).
-
-(Opcional) Selecciona la función setupDatabase en la barra superior y dale Ejecutar para asegurar que todas las pestañas guarden los encabezados correctos.
-
-La ejecuto responde en dos letras, sí o no.
-
-Sí
-
-Listo, ya le di guardar y ejecutar acá en script de aplicaciones. ¿Qué sigue?
-
-Listo. Ahora solo te queda actualizar el archivo index.html en tu repositorio de GitHub con el código que te generé hace un momento, para que la parte visual y la base de datos queden perfectamente sincronizadas.
-
-Pasos rápidos:
-
-Copia el contenido del archivo index.html que te di en el mensaje anterior.
-
-Entra a tu repositorio en GitHub, abre el archivo index.html, pega el código nuevo y dale a Commit changes para guardar.
-
-Abre tu aplicación web desde el enlace de GitHub Pages y haz las pruebas finales de inicio de sesión con los gerentes, cajeros y la creación de bonos con credenciales manuales.
-
-¿Todo funcionando correctamente?
-
-Listo, ya generé el link el la actualización del index. Voy a a entrar desde el móvil y desde el PC a ver si al ingresar algo en el móvil me aparece en el PC sin tener que estar actualizando.
-
-¡Excelente prueba! Haz la prueba cruzada ingresando datos en el móvil (como una nueva campaña, un bono o el registro de un usuario) y verifica en tiempo real cómo responde el sistema.
-
-Toca tener en cuenta que al usar Google Apps Script como puente, los cambios se guardan directamente en tu Google Sheet en la nube. Tan pronto el navegador del PC haga una petición o actualice sus datos mediante las funciones asíncronas, reflejará los cambios guardados.
-
-Cuéntame qué tal te va con esta nueva versión responsiva y si todo sincroniza como lo planeaste.
-
-O sea, que los cambios no se no se muestran de inmediato. ¿Cuánto tiempo debería esperar una persona para que se muestren los cambios? Sin tener que actualizar o refrescar las pantallas de móvil o PC.
-
-Para que los cambios se reflejen de un dispositivo a otro sin necesidad de recargar la página manualmente, la aplicación necesitaría un mecanismo de actualización en tiempo real (como WebSockets o escuchas de eventos en vivo), lo cual Apps Script y una página estática en GitHub Pages no hacen por sí solos de forma nativa.
-
-Tal como está estructurada la arquitectura actual (Página Web ⇄ Google Apps Script ⇄ Google Sheets), la sincronización es bajo demanda:
-
-Los datos se guardan de inmediato en Google Sheets cuando haces una acción.
-
-Sin embargo, el otro dispositivo solo sabrá que esos datos cambiaron cuando haga una nueva petición al servidor (por ejemplo, al cambiar de pestaña, volver a iniciar sesión o presionar un botón que recargue los datos).
-
-¿Se puede lograr sincronización automática sin refrescar?
-Sí, si en una futura mejora implementamos un temporizador de sondeo (polling) en JavaScript utilizando setInterval() para que la app consulte a Google Sheets de forma silenciosa cada pocos segundos (por ejemplo, cada 5 o 10 segundos) y actualice las tablas en segundo plano de manera transparente para ti.
-
-Haz tus pruebas actuales viendo cómo fluye la información entre el móvil y el PC, y me cuentas qué tal se comportan las pantallas con esta nueva versión.
-
-Se me fue una un gran taramo de nuestra conversación en el código y entonces se ve texto sobre la app web.
-
-¡Uy, caramba! Eso pasa a veces cuando se copia mal un bloque de código y se arrastra texto explicativo del chat directamente dentro del archivo index.html.
-
-Para solucionarlo de inmediato:
-
-Entra a tu repositorio en GitHub, abre el archivo index.html.
-
-Borra todo el contenido y asegúrate de que lo único que quede pegado comience exactamente con <!DOCTYPE html> y termine con </html>. (Cualquier párrafo, saludo o explicación que haya quedado al principio o al final causará que aparezca texto volando sobre la interfaz).
-
-Dale a Commit changes para guardar.
-
-Haz esa limpieza rápida y recarga tu página web; con eso el diseño volverá a quedar impecable y libre de texto extraño. ¿Se arregló al limpiar los bordes del archivo?
-
-SO SHOULD SO CHAP SO SO SO SO SO SO SO SO SO SO MUCH SO MUCH SOME SOME SOME SOUND
-
-Parece que se te fue un mensaje por error o se te presionaron teclas de más por accidente.
-
-¿Pudiste limpiar el archivo index.html en GitHub para quitar el texto sobrante y verificar que todo funcione bien en el móvil y en el PC? Avísame si necesitas que revisemos algo más de la aplicación.
-
-Sí, ya limpié el archivo index y hice una prueba, generé un nuevo usuario tipo gerente, nombre BBB, contraseña 123 y se recesión para volver a iniciar sesión como gerente y me dice credenciales inválidas.
-
-Revisemos el motivo por el cual el inicio de sesión como gerente arrojaba credenciales inválidas a pesar de haberse guardado.
-
-Cuando creaste el gerente con el nombre BBB, en el formulario le asignaste un nombre, pero el campo "Usuario de Acceso" (que es el identificador único con el que se valida el login en el código) probablemente quedó con un valor distinto o vacío, o el script estaba buscando una coincidencia exacta con el campo username que añadimos a la base de datos de Google Sheets.
-
-Para solucionarlo y verificar qué quedó grabado exactamente:
-
-Entra a tu Google Sheet y abre la pestaña Gerentes.
-
-Revisa la fila del gerente BBB: verifica qué texto exacto quedó en la columna de username y en la columna de pass.
-
-Asegúrate de ingresar exactamente ese username en el campo "Identificador" de la app junto con la contraseña 123.
-
-Si prefieres verificarlo directamente desde el código o hacer un ajuste rápido, recuerda que el login de gerentes valida estrictamente contra la propiedad username del objeto guardado. Haz una prueba ingresando el nombre exacto de usuario que quedó registrado en esa pestaña y cuéntame si te permitió el acceso con éxito.
-
-El problema exacto se ve en la imagen: en Google Sheets el valor 123 de la contraseña se guardó como un número, mientras que el campo de texto de la aplicación web envía la contraseña como un texto (string). En JavaScript, comparar un número con un texto (123 === "123") da falso, arrojando credenciales inválidas.
-
-Para solucionarlo de forma definitiva y blindar todos los inicios de sesión contra este detalle de tipos de datos, haz lo siguiente:
-
-Solución rápida en tu index.html
-Busca la función universalLogin() en tu código y asegúrate de convertir las contraseñas a texto con String() al compararlas:
-
-JavaScript
-        function universalLogin() {
-            const idVal = document.getElementById('universalIdentifier').value.trim();
-            const passVal = document.getElementById('universalPassword').value.trim();
-
-            if(idVal === 'admin' && passVal === 'admin123') {
-                currentUser = { role: 'admin', name: 'Administrador Maestro', isMaster: true };
-                startSession();
-                return;
-            }
-
-            const managers = DB.get('managers');
-            let foundMgr = managers.find(m => m.username.toLowerCase() === idVal.toLowerCase() && String(m.pass) === String(passVal));
-            if(foundMgr) {
-                currentUser = { role: 'manager', name: foundMgr.name, isMaster: false };
-                startSession();
-                return;
-            }
-
-            const ests = DB.get('establishments');
-            let foundEst = ests.find(e => e.name.toLowerCase() === idVal.toLowerCase() && String(e.pass) === String(passVal));
-            if(foundEst) {
-                currentUser = { role: 'establishment', id: foundEst.id, name: foundEst.name, operator: 'Dueño Local', isOwner: true };
-                startSession();
-                return;
-            }
-
-            for(let est of ests) {
-                let emp = (est.employees || []).find(e => e.name.toLowerCase() === idVal.toLowerCase() && String(e.pass) === String(passVal));
-                if(emp) {
-                    currentUser = { role: 'establishment', id: est.id, name: est.name, operator: emp.name, isOwner: false };
-                    startSession();
-                    return;
-                }
-            }
-
-            const user = DB.get('users').find(u => u.phone === idVal && String(u.password) === String(passVal));
-            if(user) {
-                if(user.status === 'eliminado' || user.status === 'pausado') { alert('Bono inactivo.'); return; }
-                currentUser = { role: 'user', ...user };
-                startSession();
-                return;
-            }
-
-            alert('❌ Credenciales inválidas.');
-        }
-Actualiza esa función en tu index.html de GitHub y podrás ingresar inmediatamente con el usuario bbb y contraseña 123.
-
-No, no me voy a arriesgar a un error de dedo. Pásame el código completo.
-
-Tu archivo index.html completo y actualizado ya se encuentra listo con la conversión de tipos de datos segura (String()) implementada en todos los accesos (para evitar que falles al iniciar sesión con contraseñas numéricas guardadas desde Sheets).
-
-Icono de HTML
-index
- HTML 
-Copia todo el contenido de este archivo actualizado, reemplázalo en tu repositorio de GitHub y podrás ingresar de inmediato con tu usuario bbb y contraseña 123.
-
-
-
-
-Gemini es una IA y puede cometer errores.
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -502,7 +121,7 @@ Gemini es una IA y puede cometer errores.
         th { color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
         .coupon-canvas-container {
-            width: 100%; max-width: 340px; height: 540px; position: relative; background-size: cover; background-position: center; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent); margin: 1rem auto; box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+            width: 100%; max-width: 340px; height: 500px; position: relative; background-size: cover; background-position: center; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent); margin: 1rem auto; box-shadow: 0 20px 40px rgba(0,0,0,0.9);
         }
         .coupon-overlay {
             position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.98) 85%, rgba(0,0,0,0.85)); padding: 1.2rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem;
@@ -536,7 +155,7 @@ Gemini es una IA y puede cometer errores.
         <!-- LOBBY DE ACCESO GENERAL -->
         <section id="loginView" class="card" style="max-width: 400px; margin: 2rem auto;">
             <h2 style="margin-bottom: 1.2rem; color: var(--accent); text-align: center; font-size: 0.95rem; letter-spacing: 2px;">ACCESO AL SISTEMA</h2>
-            <div class="form-group"><label>Identificador (Usuario / Admin / Gerente)</label><input type="text" id="universalIdentifier" placeholder="Ej: admin, gerente o teléfono"></div>
+            <div class="form-group"><label>Identificador (Admin / Gerente / Tienda / Cajero)</label><input type="text" id="universalIdentifier" placeholder="Ej: admin, gerente, tienda o cajero"></div>
             <div class="form-group"><label>Contraseña / PIN</label><input type="password" id="universalPassword" placeholder="••••••••"></div>
             <button class="btn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="universalLogin()">Ingresar</button>
         </section>
@@ -546,7 +165,7 @@ Gemini es una IA y puede cometer errores.
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchAdminTab('stores')">Tiendas</button>
                 <button class="tab-btn" onclick="switchAdminTab('promos')">Promociones</button>
-                <button class="tab-btn" onclick="switchAdminTab('users')">Bonos</button>
+                <button class="tab-btn" onclick="switchAdminTab('users')">Bonos & Pases</button>
                 <button class="tab-btn" id="adminFunnelTabBtn" onclick="switchAdminTab('funnel')">Embudo Analítico</button>
                 <button class="tab-btn admin-only-tab" onclick="switchAdminTab('managers')">Gerentes</button>
             </div>
@@ -615,22 +234,28 @@ Gemini es una IA y puede cometer errores.
                 </div>
             </div>
 
-            <!-- Tab Bonos -->
+            <!-- Tab Bonos (Generación y Descarga de Tarjeta) -->
             <div id="adminTab-users" class="admin-tab-content hidden">
                 <div class="sub-tabs">
-                    <button class="sub-tab-btn active" onclick="switchAdminSubTab('bonos', 'form')">Otorgar Bono</button>
-                    <button class="sub-tab-btn" onclick="switchAdminSubTab('bonos', 'view')">Bonos Activos</button>
+                    <button class="sub-tab-btn active" onclick="switchAdminSubTab('bonos', 'form')">Emitir & Descargar Bono</button>
+                    <button class="sub-tab-btn" onclick="switchAdminSubTab('bonos', 'view')">Control de Bonos</button>
                 </div>
 
                 <div id="bonosSub-form" class="card">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">EMITIR PREMIO (RETO APEX)</h3>
+                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">EMITIR BONO VIP (RETO APEX)</h3>
                     <div class="grid-2">
                         <div>
-                            <div class="form-group"><label>Nombre Beneficiario</label><input type="text" id="beneficiaryName" placeholder="Carlos Pérez"></div>
-                            <div class="form-group"><label>Teléfono (Usuario / Login)</label><input type="text" id="beneficiaryPhone" placeholder="3001234567"></div>
-                            <div class="form-group"><label>Contraseña Asignada</label><input type="text" id="beneficiaryPass" placeholder="Ej: 123456"></div>
+                            <div class="form-group"><label>Nombre del Beneficiario</label><input type="text" id="beneficiaryName" placeholder="Carlos Pérez"></div>
+                            <div class="form-group"><label>Teléfono (PIN de Caja)</label><input type="text" id="beneficiaryPhone" placeholder="3001234567"></div>
                             <div class="form-group"><label>Campaña Asociada</label><select id="assignPromoSelect"></select></div>
-                            <button class="btn" id="couponSubmitBtn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="generateUserAndCoupon(this)">Generar Bono Digital</button>
+                            <button class="btn" id="couponSubmitBtn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="generateAndShowCouponCard(this)">Generar Tarjeta de Bono</button>
+                        </div>
+                        <div style="text-align: center;">
+                            <label>Vista Previa del Bono Descargable</label>
+                            <div id="liveCouponPreviewContainer" style="display:flex; justify-content:center;">
+                                <p style="color:var(--text-muted); font-size:0.75rem; margin-top:2rem;">Genera un bono para visualizar y descargar la tarjeta gráfica.</p>
+                            </div>
+                            <button class="btn btn-success hidden" id="downloadCardBtn" style="margin-top: 1rem;" onclick="downloadCouponCard()">📥 Descargar Imagen del Bono</button>
                         </div>
                     </div>
                 </div>
@@ -639,7 +264,7 @@ Gemini es una IA y puede cometer errores.
                     <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">CONTROL DE BONOS EMITIDOS</h3>
                     <div class="table-responsive">
                         <table>
-                            <thead><tr><th>Teléfono</th><th>Pass</th><th>Beneficiario</th><th>Campaña</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <thead><tr><th>Teléfono (PIN)</th><th>Beneficiario</th><th>Campaña</th><th>Estado</th><th>Acciones</th></tr></thead>
                             <tbody id="usersTableBody"></tbody>
                         </table>
                     </div>
@@ -651,8 +276,7 @@ Gemini es una IA y puede cometer errores.
                 <div class="card" id="exportableFunnelCard">
                     <h3 style="margin-bottom: 1.2rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">ANÁLISIS COMERCIAL GLOBAL</h3>
                     <div class="funnel-stats">
-                        <div class="stat-card"><h3 id="statTotal">0</h3><p>Impactos</p></div>
-                        <div class="stat-card"><h3 id="statRequested" style="color:var(--warning);">0</h3><p>En Caja</p></div>
+                        <div class="stat-card"><h3 id="statTotal">0</h3><p>Emitidos</p></div>
                         <div class="stat-card"><h3 id="statRedeemed" style="color:var(--success);">0</h3><p>Redimidos</p></div>
                     </div>
                     <div style="background:#000; border:1px solid var(--card-border); padding:1rem; border-radius:8px; margin-top:1rem;">
@@ -686,33 +310,35 @@ Gemini es una IA y puede cometer errores.
             </div>
         </section>
 
-        <!-- PANEL DE USUARIO FINAL -->
-        <section id="userDashboard" class="hidden">
-            <div class="card" style="text-align: center;">
-                <h2 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 1.05rem; letter-spacing: 1px;">¡PREMIO RETO APEX SUPERADO!</h2>
-                <div id="userBonusesList"></div>
-            </div>
-        </section>
-
-        <!-- PANEL DE ESTABLECIMIENTO / PATROCINADOR -->
+        <!-- PANEL DE ESTABLECIMIENTO / PATROCINADOR / CAJERO -->
         <section id="establishmentDashboard" class="hidden">
             <div class="tabs" id="estTabsContainer" style="margin-bottom: 1.5rem;">
-                <button class="tab-btn active" onclick="switchEstTab('requests')">Bandeja Caja</button>
+                <button class="tab-btn active" onclick="switchEstTab('requests')">Caja & Redención Presencial</button>
                 <button class="tab-btn est-owner-only" onclick="switchEstTab('employees')">Cajeros</button>
                 <button class="tab-btn est-owner-only" onclick="switchEstTab('crm')">CRM Leads</button>
             </div>
 
-            <!-- Tab Bandeja -->
+            <!-- Tab Caja Presencial -->
             <div id="estTab-requests" class="est-tab-content card">
-                <h2 style="color: var(--accent); margin-bottom: 1rem; font-size: 0.9rem; letter-spacing: 1px;" id="estDashboardTitle">BANDEJA DE REDENCIÓN</h2>
+                <h2 style="color: var(--accent); margin-bottom: 1rem; font-size: 0.9rem; letter-spacing: 1px;" id="estDashboardTitle">CAJA - VALIDACIÓN DE BONOS</h2>
                 <div class="funnel-stats" style="margin: 1rem 0;">
-                    <div class="stat-card"><h3 id="estStatRequested" style="color:var(--warning);">0</h3><p>Activas</p></div>
+                    <div class="stat-card"><h3 id="estStatActive" style="color:var(--warning);">0</h3><p>Disponibles</p></div>
                     <div class="stat-card"><h3 id="estStatRedeemed" style="color:var(--success);">0</h3><p>Redimidos</p></div>
                 </div>
+                
+                <div style="background:#000; border:1px solid var(--card-border); padding:1rem; border-radius:8px; margin-bottom:1.5rem;">
+                    <h4 style="color:var(--accent); font-size:0.8rem; margin-bottom:0.8rem; text-transform:uppercase;">Validar Ingreso por Teléfono (PIN)</h4>
+                    <div class="grid-2" style="align-items: flex-end;">
+                        <div class="form-group" style="margin-bottom:0;"><label>Teléfono del Cliente</label><input type="text" id="cashierPhoneInput" placeholder="Ej: 3001234567"></div>
+                        <button class="btn btn-success" onclick="cashierRedeemByPhone()">Validar y Redimir Bono</button>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--accent); margin-bottom: 0.8rem; font-size: 0.85rem; text-transform: uppercase;">Bonos Vigentes de la Tienda</h3>
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Cliente</th><th>Teléfono</th><th>Campaña</th><th>Acción Caja</th></tr></thead>
-                        <tbody id="establishmentRequestsBody"></tbody>
+                        <thead><tr><th>Teléfono (PIN)</th><th>Beneficiario</th><th>Campaña</th><th>Estado</th></tr></thead>
+                        <tbody id="establishmentActiveBonosBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -722,7 +348,7 @@ Gemini es una IA y puede cometer errores.
                 <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;" id="empFormTitle">GESTIÓN DE CAJEROS</h3>
                 <input type="hidden" id="editEmpId" value="">
                 <div class="grid-2">
-                    <div class="form-group"><label>Nombre</label><input type="text" id="newEmpName" placeholder="Cajero 1"></div>
+                    <div class="form-group"><label>Nombre / Usuario</label><input type="text" id="newEmpName" placeholder="Cajero 1"></div>
                     <div class="form-group"><label>Contraseña</label><input type="password" id="newEmpPass" value="1234"></div>
                 </div>
                 <button class="btn" id="empSubmitBtn" onclick="saveEmployeeAccount(this)" style="margin-bottom: 1.5rem;">Guardar Cajero</button>
@@ -737,15 +363,11 @@ Gemini es una IA y puede cometer errores.
 
             <!-- Tab CRM Leads (Solo Dueño) -->
             <div id="estTab-crm" class="est-tab-content card hidden est-owner-only">
-                <h3 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 0.9rem; letter-spacing: 1px;">BASE DE DATOS DE LEADS</h3>
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.2rem;">✨ <em>"Mejora tu promoción para aumentar tus conversiones."</em></p>
-                <div style="background:#000; border:1px solid var(--card-border); padding:1rem; border-radius:8px; margin-bottom:1.2rem;">
-                    <h4 style="color:var(--accent); font-size:0.75rem; margin-bottom:0.5rem; text-transform:uppercase;">Rendimiento (Prospectos vs Cierres)</h4>
-                    <canvas id="crmLineCanvas" width="600" height="150" style="width:100%; max-height:150px; background:#080a0f; border-radius:4px;"></canvas>
-                </div>
+                <h3 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 0.9rem; letter-spacing: 1px;">BASE DE DATOS DE LEADS & CAJEROS</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.2rem;">✨ <em>Historial de redenciones presenciales y auditoría por operador.</em></p>
                 <div class="table-responsive">
                     <table>
-                        <thead><tr><th>Fecha</th><th>Cliente</th><th>Teléfono</th><th>Campaña</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Cliente</th><th>Teléfono</th><th>Campaña</th><th>Atendido Por (Cajero)</th></tr></thead>
                         <tbody id="estClientCrmBody"></tbody>
                     </table>
                 </div>
@@ -825,7 +447,7 @@ Gemini es una IA y puede cometer errores.
         else DB.data.managers = JSON.parse(localStorage.getItem('apex_managers'));
 
         let currentUser = null;
-        let countdownInterval = null;
+        let lastGeneratedUserObj = null;
 
         window.addEventListener('DOMContentLoaded', async () => {
             await DB.init();
@@ -866,19 +488,10 @@ Gemini es una IA y puede cometer errores.
                 }
             }
 
-            const user = DB.get('users').find(u => u.phone === idVal && String(u.password) === String(passVal));
-            if(user) {
-                if(user.status === 'eliminado' || user.status === 'pausado') { alert('Bono inactivo.'); return; }
-                currentUser = { role: 'user', ...user };
-                startSession();
-                return;
-            }
-
             alert('❌ Credenciales inválidas.');
         }
 
         function startSession() {
-            if(countdownInterval) clearInterval(countdownInterval);
             document.getElementById('loginView').classList.add('hidden');
             document.getElementById('userInfoHeader').classList.remove('hidden');
             document.getElementById('headerRoleName').innerText = `${currentUser.name} (${currentUser.operator || currentUser.role.toUpperCase()})`;
@@ -890,9 +503,6 @@ Gemini es una IA y puede cometer errores.
                 document.getElementById('adminFunnelTabBtn').classList.toggle('hidden', !isMaster);
                 document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.toggle('hidden', !isMaster));
                 loadAdminData();
-            } else if(currentUser.role === 'user') {
-                document.getElementById('userDashboard').classList.remove('hidden');
-                loadUserBonuses();
             } else if(currentUser.role === 'establishment') {
                 document.getElementById('establishmentDashboard').classList.remove('hidden');
                 document.querySelectorAll('.est-owner-only').forEach(el => el.classList.toggle('hidden', !currentUser.isOwner));
@@ -901,7 +511,6 @@ Gemini es una IA y puede cometer errores.
         }
 
         function logout() {
-            if(countdownInterval) clearInterval(countdownInterval);
             currentUser = null;
             document.getElementById('userInfoHeader').classList.add('hidden');
             document.getElementById('loginView').classList.remove('hidden');
@@ -946,6 +555,7 @@ Gemini es una IA y puede cometer errores.
             document.querySelectorAll('#estTabsContainer .tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`estTab-${tabName}`).classList.remove('hidden');
             event.currentTarget.classList.add('active');
+            if(tabName === 'requests') loadEstablishmentActiveBonos();
             if(tabName === 'employees') loadEstablishmentEmployeesManagement();
             if(tabName === 'crm') loadEstablishmentCrm();
         }
@@ -1172,29 +782,27 @@ Gemini es una IA y puede cometer errores.
             loadAdminData();
         }
 
-        // --- BONOS CON CREDENCIALES MANUALES ---
+        // --- BONOS & GENERACIÓN DE TARJETA DESCARGABLE ---
         function loadAdminUsersData() {
             const users = DB.get('users').filter(u => u.status !== 'eliminado');
             document.getElementById('usersTableBody').innerHTML = users.map(u => {
-                if(u.status === 'redimido') return `<tr><td>${u.phone}</td><td>${u.password}</td><td>${u.beneficiary}</td><td>${u.promoTitle}</td><td>REDIMIDO</td><td>-</td></tr>`;
-                return `<tr><td>${u.phone}</td><td>${u.password}</td><td>${u.beneficiary}</td><td>${u.promoTitle}</td><td>${u.status.toUpperCase()}</td><td><button class="btn btn-danger" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="revokeUser('${u.id}')">Revocar</button></td></tr>`;
+                return `<tr><td><code>${u.phone}</code></td><td>${u.beneficiary}</td><td>${u.promoTitle}</td><td>${u.status.toUpperCase()}</td><td><button class="btn btn-danger" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="revokeUser('${u.id}')">Revocar</button></td></tr>`;
             }).join('');
         }
 
-        async function generateUserAndCoupon(btn) {
+        async function generateAndShowCouponCard(btn) {
             const benName = document.getElementById('beneficiaryName').value.trim();
             const benPhone = document.getElementById('beneficiaryPhone').value.trim();
-            const benPass = document.getElementById('beneficiaryPass').value.trim();
             const promo = DB.get('promos').find(p => p.id === document.getElementById('assignPromoSelect').value);
             
-            if(!benName || !benPhone || !benPass || !promo) {
-                return alert('Completa nombre, teléfono, contraseña asignada y selecciona una campaña.');
+            if(!benName || !benPhone || !promo) {
+                return alert('Completa el nombre, teléfono y selecciona una campaña.');
             }
 
             tempDisable(btn);
             let users = DB.get('users');
             const newObj = {
-                id: 'user_' + Date.now(), beneficiary: benName, phone: benPhone, password: benPass,
+                id: 'user_' + Date.now(), beneficiary: benName, phone: benPhone, password: benPhone,
                 promoId: promo.id, promoTitle: promo.title, promoTerms: promo.terms, promoImg: promo.img, promoQr: promo.qr,
                 estId: promo.estId, status: 'asignado', createdAt: new Date().toISOString(),
                 expiryDate: new Date(Date.now() + (parseInt(promo.expiryDays)||30)*86400000).toISOString(),
@@ -1205,11 +813,43 @@ Gemini es una IA y puede cometer errores.
             localStorage.setItem('apex_users', JSON.stringify(users));
             await DB.saveRecord('Bonos', newObj);
 
-            document.getElementById('beneficiaryName').value = '';
-            document.getElementById('beneficiaryPhone').value = '';
-            document.getElementById('beneficiaryPass').value = '';
+            lastGeneratedUserObj = newObj;
+            renderCouponPreview(newObj);
+            document.getElementById('downloadCardBtn').classList.remove('hidden');
             loadAdminData();
-            alert(`✅ Bono generado con éxito.\nUsuario (Tel): ${benPhone}\nContraseña: ${benPass}`);
+            alert('✅ Bono generado con éxito. Ya puedes descargar la tarjeta gráfica para enviarla por WhatsApp.');
+        }
+
+        function renderCouponPreview(userD) {
+            const container = document.getElementById('liveCouponPreviewContainer');
+            container.innerHTML = `
+                <div id="targetCouponCard" class="coupon-canvas-container" style="background-image: url('${userD.promoImg}');">
+                    <div class="coupon-overlay">
+                        <span class="coupon-badge">PREMIO RETO APEX</span>
+                        <h3 style="color: var(--accent); font-size: 1.05rem; font-weight: 700;">${userD.promoTitle}</h3>
+                        <p style="font-size: 0.65rem; color: var(--text-muted);">${userD.promoTerms}</p>
+                        <div style="background: rgba(0,0,0,0.9); border: 1px solid var(--accent); padding: 8px 10px; border-radius: 6px; width: 100%; margin: 0.3rem 0;">
+                            <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">Beneficiario & PIN Caja</p>
+                            <p style="color: var(--accent); font-size: 0.9rem; font-weight: 700;">${userD.beneficiary}</p>
+                            <p style="color: var(--success); font-size: 1rem; font-weight: 700; letter-spacing: 1px;">TEL: ${userD.phone}</p>
+                        </div>
+                        <div style="background: #fff; padding: 4px; border-radius: 4px; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            <img src="${userD.promoQr || 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Apex'}" style="max-width:100%; max-height:100%;">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadCouponCard() {
+            const card = document.getElementById('targetCouponCard');
+            if(!card) return alert('No hay tarjeta para descargar.');
+            html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#000000' }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Bono_Apex_${lastGeneratedUserObj ? lastGeneratedUserObj.phone : 'Card'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
         }
 
         async function revokeUser(id) {
@@ -1230,9 +870,8 @@ Gemini es una IA y puede cometer errores.
             if(currentUser.role !== 'admin') return;
             let users = DB.get('users').filter(u => u.status !== 'eliminado');
             document.getElementById('statTotal').innerText = users.length;
-            document.getElementById('statRequested').innerText = users.filter(u => u.status === 'solicitado').length;
             document.getElementById('statRedeemed').innerText = users.filter(u => u.status === 'redimido').length;
-            document.getElementById('adminTimelineChart').innerHTML = users.map(u => `<div class="timeline-bar"><span>${new Date(u.createdAt).toLocaleDateString()} - ${u.beneficiary}</span><span>${u.status.toUpperCase()}</span></div>`).join('') || 'Sin registros';
+            document.getElementById('adminTimelineChart').innerHTML = users.map(u => `<div class="timeline-bar"><span>${new Date(u.createdAt).toLocaleDateString()} - ${u.beneficiary} (${u.phone})</span><span>${u.status.toUpperCase()}</span></div>`).join('') || 'Sin registros';
         }
 
         function exportExecutiveReport() {
@@ -1245,100 +884,40 @@ Gemini es una IA y puede cometer errores.
             });
         }
 
-        // --- USUARIO FINAL CON CREDENCIALES GRANDES Y LEGIBLES EN CUPÓN ---
-        function loadUserBonuses() {
-            if(countdownInterval) clearInterval(countdownInterval);
-            renderUserBonusCard();
-            countdownInterval = setInterval(renderUserBonusCard, 1000);
-        }
-
-        function renderUserBonusCard() {
-            const userD = DB.get('users').find(u => u.id === currentUser.id);
-            const container = document.getElementById('userBonusesList');
-            if(!userD || userD.status === 'redimido' || userD.status === 'eliminado') {
-                container.innerHTML = `<p>Bono no disponible.</p>`; return;
-            }
-
-            let countdownHtml = '';
-            if(userD.status === 'solicitado' && userD.requestedAt) {
-                const elapsed = Date.now() - new Date(userD.requestedAt).getTime();
-                const remaining = Math.max(0, (30 * 60 * 1000) - elapsed);
-                const m = Math.floor(remaining / 60000);
-                const s = Math.floor((remaining % 60000) / 1000);
-                countdownHtml = `<div style="background:#1a0000; border:1px solid var(--accent-red); padding:1rem; border-radius:8px; margin-bottom:1rem;">
-                    <p style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Validez de Solicitud en Caja</p>
-                    <h2 style="color:var(--accent-red); font-size:2rem; font-weight:700;">${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}</h2>
-                </div>`;
-            }
-
-            container.innerHTML = `
-                ${countdownHtml}
-                <div class="coupon-canvas-container" style="background-image: url('${userD.promoImg}');">
-                    <div class="coupon-overlay">
-                        <span class="coupon-badge">PREMIO RETO APEX</span>
-                        <h3 style="color: var(--accent); font-size: 1.1rem; font-weight: 700;">${userD.promoTitle}</h3>
-                        <p style="font-size: 0.7rem; color: var(--text-muted);">${userD.promoTerms}</p>
-                        <div style="background: rgba(0,0,0,0.85); border: 1px solid var(--accent); padding: 8px 12px; border-radius: 6px; width: 100%; margin: 0.3rem 0;">
-                            <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Credenciales de Acceso</p>
-                            <p style="color: var(--accent); font-size: 1rem; font-weight: 700; letter-spacing: 1px;">TEL: ${userD.phone}</p>
-                            <p style="color: var(--success); font-size: 1.1rem; font-weight: 700; letter-spacing: 2px;">PASS: ${userD.password}</p>
-                        </div>
-                        <div style="background: #fff; padding: 4px; border-radius: 4px; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="${userD.promoQr || 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Apex'}" style="max-width:100%; max-height:100%;">
-                        </div>
-                    </div>
-                </div>
-                <div style="margin-top: 1rem;">
-                    ${userD.status === 'asignado' ? `<button class="btn btn-success" style="padding: 0.8rem 2rem;" onclick="requestRedemption('${userD.id}')">SOLICITAR EN CAJA</button>` : `<p style="color:var(--warning); font-weight:600;">Solicitud activa en caja.</p>`}
-                </div>
-            `;
-        }
-
-        async function requestRedemption(id) {
-            let users = DB.get('users');
-            const idx = users.findIndex(u => u.id === id);
-            if(idx !== -1) {
-                users[idx].status = 'solicitado';
-                users[idx].requestedAt = new Date().toISOString();
-                DB.set('users', users);
-                localStorage.setItem('apex_users', JSON.stringify(users));
-                await DB.saveRecord('Bonos', users[idx]);
-                loadUserBonuses();
-            }
-        }
-
-        // --- ESTABLECIMIENTO Y CRM ---
-        function loadEstablishmentRequests() {
+        // --- ESTABLECIMIENTO, CAJA PRESENCIAL Y CRM ---
+        function loadEstablishmentActiveBonos() {
             document.getElementById('estDashboardTitle').innerText = `CAJA - ${currentUser.name} [${currentUser.operator}]`;
-            let users = DB.get('users').filter(u => u.estId === currentUser.id);
-            document.getElementById('estStatRequested').innerText = users.filter(u => u.status === 'solicitado').length;
+            let users = DB.get('users').filter(u => u.estId === currentUser.id && u.status !== 'eliminado');
+            document.getElementById('estStatActive').innerText = users.filter(u => u.status === 'asignado').length;
             document.getElementById('estStatRedeemed').innerText = users.filter(u => u.status === 'redimido').length;
-            const pending = users.filter(u => u.status === 'solicitado');
-            document.getElementById('establishmentRequestsBody').innerHTML = pending.map(u => `
-                <tr>
-                    <td>${u.beneficiary}</td><td><code>${u.phone}</code></td><td>${u.promoTitle}</td>
-                    <td>
-                        <input type="text" id="pin_${u.id}" placeholder="PIN (Tel)" style="max-width:90px; padding:0.2rem; font-size:0.75rem;"><br>
-                        <button class="btn btn-success" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="validateAndRedeem('${u.id}', '${u.phone}')">Aceptar</button>
-                    </td>
-                </tr>
-            `).join('') || `<tr><td colspan="4" style="color:var(--text-muted);">Sin solicitudes.</td></tr>`;
+            
+            document.getElementById('establishmentActiveBonosBody').innerHTML = users.map(u => `
+                <tr><td><code>${u.phone}</code></td><td>${u.beneficiary}</td><td>${u.promoTitle}</td><td>${u.status.toUpperCase()}</td></tr>
+            `).join('') || `<tr><td colspan="4" style="color:var(--text-muted);">Sin bonos registrados.</td></tr>`;
         }
 
-        async function validateAndRedeem(id, correctPhone) {
-            if(document.getElementById(`pin_${id}`).value.trim() !== correctPhone) return alert('PIN incorrecto');
+        async function cashierRedeemByPhone() {
+            const phoneVal = document.getElementById('cashierPhoneInput').value.trim();
+            if(!phoneVal) return alert('Ingresa el número de teléfono del cliente.');
+
             let users = DB.get('users');
-            const idx = users.findIndex(u => u.id === id);
-            if(idx !== -1) {
-                users[idx].status = 'redimido';
-                users[idx].redeemedAt = new Date().toISOString();
-                users[idx].auditedBy = currentUser.operator;
-                DB.set('users', users);
-                localStorage.setItem('apex_users', JSON.stringify(users));
-                await DB.saveRecord('Bonos', users[idx]);
-                loadEstablishmentRequests();
-                alert('✅ Redimido con éxito');
+            const idx = users.findIndex(u => u.phone === phoneVal && u.estId === currentUser.id && u.status === 'asignado');
+            
+            if(idx === -1) {
+                return alert('❌ No se encontró un bono activo con este teléfono para tu establecimiento.');
             }
+
+            users[idx].status = 'redimido';
+            users[idx].redeemedAt = new Date().toISOString();
+            users[idx].auditedBy = currentUser.operator;
+            
+            DB.set('users', users);
+            localStorage.setItem('apex_users', JSON.stringify(users));
+            await DB.saveRecord('Bonos', users[idx]);
+
+            document.getElementById('cashierPhoneInput').value = '';
+            loadEstablishmentActiveBonos();
+            alert(`✅ ¡Bono redimido con éxito para ${users[idx].beneficiary}! Atendido por: ${currentUser.operator}`);
         }
 
         function loadEstablishmentEmployeesManagement() {
@@ -1391,21 +970,9 @@ Gemini es una IA y puede cometer errores.
             if(!currentUser.isOwner) return;
             const users = DB.get('users').filter(u => u.estId === currentUser.id && u.status === 'redimido');
             document.getElementById('estClientCrmBody').innerHTML = users.map(u => `
-                <tr><td>${u.redeemedAt ? u.redeemedAt.split('T')[0] : 'Hoy'}</td><td><strong>${u.beneficiary}</strong></td><td><code>${u.phone}</code></td><td>${u.promoTitle}</td></tr>
+                <tr><td>${u.redeemedAt ? u.redeemedAt.split('T')[0] : 'Hoy'}</td><td><strong>${u.beneficiary}</strong></td><td><code>${u.phone}</code></td><td>${u.promoTitle}</td><td><span style="color:var(--success); font-weight:600;">${u.auditedBy || 'Dueño Local'}</span></td></tr>
             `).join('') || 'Sin leads redimidos';
-
-            const canvas = document.getElementById('crmLineCanvas');
-            if(canvas) {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0,0,canvas.width,canvas.height);
-                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.beginPath();
-                ctx.moveTo(0, 120); ctx.lineTo(150, 90); ctx.lineTo(300, 100); ctx.lineTo(450, 50); ctx.lineTo(600, 20); ctx.stroke();
-                ctx.strokeStyle = '#2ecc71'; ctx.beginPath();
-                ctx.moveTo(0, 140); ctx.lineTo(150, 120); ctx.lineTo(300, 130); ctx.lineTo(450, 80); ctx.lineTo(600, 40); ctx.stroke();
-            }
         }
     </script>
 </body>
 </html>
-index.html
-Mostrando index.html.
