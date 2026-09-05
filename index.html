@@ -3,976 +3,814 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Embudo de Ventas Apex Boxing</title>
-    <!-- Librería para exportar a imagen -->
+    <title>Apex - Sistema de Bonos Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root {
-            --bg-color: #000000;
-            --card-bg: #080a0f;
-            --card-border: #1f242d;
-            --accent: #ffffff;
-            --accent-red: #e74c3c;
-            --text-main: #ffffff;
-            --text-muted: #8b949e;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --danger: #e74c3c;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 20px; }
+        .card { background: #050505; border: 1px solid #1a1a1a; padding: 18px; margin-bottom: 15px; border-radius: 6px; max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.9); }
+        input, select, textarea, button { width: 100%; padding: 11px; margin: 8px 0; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; font-family: inherit; }
         
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background-image: 
-                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px),
-                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px);
-            background-size: 40px 40px;
-            overflow-x: hidden;
-        }
+        /* Botones Estilo Apex (Noir Minimalista) */
+        button { background: #fff; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; border: 1px solid #fff; transition: all 0.2s ease; }
+        button:hover { background: #000; color: #fff; border-color: #fff; }
+        button:active { transform: scale(0.97); }
 
-        header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--card-border);
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.9);
-            position: relative;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        header::after {
-            content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
-        }
-
-        header h1 {
-            color: var(--accent);
-            font-size: 0.95rem;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            background: #ffffff; color: #000000; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.2s ease; font-size: 0.75rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap;
-        }
-        .btn:hover { background: #e0e0e0; transform: translateY(-1px); }
-        .btn:disabled { background: var(--text-muted); cursor: not-allowed; opacity: 0.6; transform: none; }
-        .btn-secondary { background: transparent; border: 1px solid var(--card-border); color: var(--text-main); }
-        .btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: var(--text-muted); }
-        .btn-danger { background: var(--accent-red); color: #fff; }
-        .btn-danger:hover { background: #c0392b; }
-        .btn-success { background: var(--success); color: #000; }
-        .btn-warning { background: var(--warning); color: #000; }
-
-        main { flex: 1; padding: 1rem; max-width: 1100px; margin: 0 auto; width: 100%; }
-        
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 1.2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-        }
-        .card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent-red);
-        }
-
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.4rem; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-        input, select, textarea {
-            width: 100%; padding: 0.75rem; background-color: #000000; border: 1px solid var(--card-border); border-radius: 6px; color: var(--text-main); font-size: 0.9rem; transition: border-color 0.2s;
-        }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-        @media(min-width: 650px) {
-            .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-            main { padding: 2rem 1rem; }
-            header { padding: 1rem 2rem; }
-            header h1 { font-size: 1.1rem; }
-        }
-        
-        .funnel-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
-        .stat-card { background: #000000; border: 1px solid var(--card-border); padding: 1rem 0.5rem; border-radius: 8px; text-align: center; }
-        .stat-card h3 { font-size: 1.5rem; color: var(--accent); margin-bottom: 0.2rem; font-weight: 700; }
-        .stat-card p { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-
-        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 1rem; }
-        table { width: 100%; border-collapse: collapse; min-width: 420px; }
-        th, td { padding: 0.7rem 0.5rem; text-align: left; border-bottom: 1px solid var(--card-border); font-size: 0.8rem; word-break: break-word; }
-        th { color: var(--text-muted); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-
-        .coupon-canvas-container {
-            width: 100%; max-width: 340px; height: 500px; position: relative; background-size: cover; background-position: center; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent); margin: 1rem auto; box-shadow: 0 20px 40px rgba(0,0,0,0.9);
-        }
-        .coupon-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.98) 85%, rgba(0,0,0,0.85)); padding: 1.2rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem;
-        }
-        .coupon-badge { background: var(--accent-red); color: #fff; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; }
-
-        .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .tab-btn { background: transparent; border: none; color: var(--text-muted); font-weight: 600; cursor: pointer; padding: 0.5rem 1rem; border-radius: 6px; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
-        .tab-btn.active { background-color: rgba(255,255,255,0.05); color: var(--accent); border-bottom: 2px solid var(--accent-red); }
-
-        .sub-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; overflow-x: auto; }
-        .sub-tab-btn { background: #000; border: 1px solid var(--card-border); color: var(--text-muted); padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.65rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-        .sub-tab-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.03); }
-
-        .timeline-bar { background: #000; border-left: 3px solid var(--accent-red); padding: 0.7rem; margin-bottom: 0.5rem; border-radius: 0 6px 6px 0; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--card-border); border-right: 1px solid var(--card-border); gap: 0.5rem; flex-wrap: wrap; }
+        .btn-danger { background: #000; color: #fff; border: 1px solid #444; }
+        .btn-danger:hover { background: #222; border-color: #fff; }
 
         .hidden { display: none !important; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { border: 1px solid #1a1a1a; padding: 8px; text-align: left; }
+        th { background: #0a0a0a; color: #777; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* Navegación por pestañas con transición suave */
+        .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-around; background: #080808; padding: 6px; border-radius: 6px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; gap: 4px; border: 1px solid #1a1a1a; }
+        .nav-btn { background: transparent; color: #777; border: none; font-size: 10px; cursor: pointer; padding: 6px; flex: 1; min-width: 55px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-btn.active { color: #fff; border-bottom: 2px solid #fff; font-weight: bold; }
+
+        /* Tarjeta 9:16 Vertical */
+        .coupon-box { 
+            position: relative; background-size: cover; background-position: center; 
+            border: 2px solid #fff; text-align: center; margin-top: 10px; 
+            border-radius: 12px; width: 280px; height: 500px; margin-left: auto; margin-right: auto; color: #fff;
+            overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+        }
+        .coupon-overlay { 
+            background: rgba(0,0,0,0.85); width: 100%; height: 100%; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            padding: 25px 15px; box-sizing: border-box; text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+        }
+        
+        .suggestions-box { background: #0a0a0a; border: 1px solid #333; max-height: 150px; overflow-y: auto; text-align: left; margin-bottom: 10px; border-radius: 4px; }
+        .suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #1a1a1a; font-size: 13px; transition: background 0.15s; }
+        .suggestion-item:hover { background: #1a1a1a; }
+
+        .funnel-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+        .funnel-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 12px; text-align: center; border-radius: 4px; }
+        .funnel-card span { font-size: 18px; font-weight: bold; color: #fff; display: block; margin-top: 4px; letter-spacing: 1px; }
+        .bar-container { background: #111; border-radius: 4px; margin: 6px 0; overflow: hidden; height: 18px; position: relative; border: 1px solid #222; }
+        .bar-fill { background: #fff; height: 100%; width: 0%; transition: width 0.5s ease; }
+        .bar-text { position: absolute; width: 100%; top: 0; left: 0; font-size: 10px; text-align: center; line-height: 18px; color: #000; font-weight: bold; }
+        .clickable-row { cursor: pointer; transition: background 0.15s; }
+        .clickable-row:hover { background: #111; }
+
+        /* Notificación Toast Nativa */
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 12px; letter-spacing: 1px; box-shadow: 0 5px 20px rgba(255,255,255,0.2); transition: transform 0.3s ease; z-index: 1000; text-transform: uppercase; }
+        #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Apex Boxing // Motor Comercial</h1>
-        <div class="user-info" id="userInfoHeader" class="hidden">
-            <span id="headerRoleName" style="color: var(--accent); font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; margin-right: 0.5rem;"></span>
-            <button class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.65rem;" onclick="logout()">Cerrar Sesión</button>
+    <div style="max-width: 500px; margin: 0 auto; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
+            <img id="globalAppLogo" src="" alt="" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%; border: 1px solid #fff; display: none;">
+            <h2 style="letter-spacing: 2px; font-size: 15px; margin: 0;">APEX // EMBUDO DE VENTAS</h2>
         </div>
-    </header>
+        <div id="currentUserBar" class="hidden" style="margin-bottom: 15px;">
+            <span id="lblRoleInfo" style="font-size: 12px; color: #777;"></span>
+            <button onclick="logout()" style="width: auto; padding: 3px 8px; margin-left: 8px; font-size: 10px;" class="btn-danger">Salir</button>
+        </div>
+    </div>
 
-    <main>
-        <!-- LOBBY DE ACCESO GENERAL -->
-        <section id="loginView" class="card" style="max-width: 400px; margin: 2rem auto;">
-            <h2 style="margin-bottom: 1.2rem; color: var(--accent); text-align: center; font-size: 0.95rem; letter-spacing: 2px;">ACCESO AL SISTEMA</h2>
-            <div class="form-group"><label>Identificador (Admin / Gerente / Tienda / Cajero)</label><input type="text" id="universalIdentifier" placeholder="Ej: admin, gerente, tienda o cajero"></div>
-            <div class="form-group"><label>Contraseña / PIN</label><input type="password" id="universalPassword" placeholder="••••••••"></div>
-            <button class="btn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="universalLogin()">Ingresar</button>
-        </section>
+    <!-- LOGIN -->
+    <section id="loginView" class="card">
+        <h3 style="font-size: 13px; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Acceso al Sistema</h3>
+        <p style="font-size: 11px; color: #666;">Usa <code>admin</code> o escribe el nombre exacto de la tienda.</p>
+        <input type="text" id="loginUser" placeholder="Usuario (Ej: admin o Tienda)">
+        <button onclick="login()">Ingresar</button>
+    </section>
 
-        <!-- PANEL DE ADMINISTRADOR / GERENTE -->
-        <section id="adminDashboard" class="hidden">
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchAdminTab('stores')">Tiendas</button>
-                <button class="tab-btn" onclick="switchAdminTab('promos')">Promociones</button>
-                <button class="tab-btn" onclick="switchAdminTab('users')">Bonos & Pases</button>
-                <button class="tab-btn" id="adminFunnelTabBtn" onclick="switchAdminTab('funnel')">Embudo Analítico</button>
-                <button class="tab-btn admin-only-tab" onclick="switchAdminTab('managers')">Gerentes</button>
-            </div>
+    <!-- PANEL ADMINISTRADOR MAESTRO -->
+    <section id="adminDashboard" class="hidden">
+        <div class="nav-bar">
+            <button class="nav-btn active" onclick="switchAdminTab('tabStores')">Tiendas</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabPromos')">Campañas</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabBonos')">Emitir</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabList')">Listado</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabFunnel')">Embudo</button>
+            <button class="nav-btn" onclick="switchAdminTab('tabSettings')">Ajustes</button>
+        </div>
 
-            <!-- Tab Tiendas -->
-            <div id="adminTab-stores" class="admin-tab-content">
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" onclick="switchAdminSubTab('stores', 'form')">Registrar / Editar</button>
-                    <button class="sub-tab-btn" onclick="switchAdminSubTab('stores', 'view')">Ver Listado & Métricas</button>
-                </div>
-                
-                <div id="storesSub-form" class="card">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">GESTIÓN DE TIENDA PATROCINADORA</h3>
-                    <input type="hidden" id="editStoreId" value="">
-                    <div class="form-group"><label>Nombre del Local</label><input type="text" id="storeNameInput" placeholder="Ej: Aquapark Las Tortugas"></div>
-                    <div class="form-group"><label>Contraseña de Acceso</label><input type="password" id="storePassInput" value="1234"></div>
-                    <button class="btn" id="storeSubmitBtn" onclick="saveStore(this)">Guardar Tienda</button>
-                    <button class="btn btn-secondary hidden" id="storeCancelEditBtn" onclick="cancelStoreEdit()" style="margin-left: 0.5rem;">Cancelar</button>
-                </div>
-                
-                <div id="storesSub-view" class="card hidden">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">ESTABLECIMIENTOS & EFECTIVIDAD</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Tienda</th><th>Campañas & Conversión</th><th>Acciones</th></tr></thead>
-                            <tbody id="storesTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        <!-- TAB 1: TIENDAS -->
+        <div id="tabStores" class="card admin-tab">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Tiendas y Accesos</h3>
+            <input type="text" id="storeName" placeholder="Nombre de la Tienda">
+            <button onclick="saveStore()">Guardar Tienda</button>
+            <table>
+                <thead><tr><th>Nombre de Usuario / Acceso</th><th>Acciones</th></tr></thead>
+                <tbody id="adminStoresTable"></tbody>
+            </table>
+        </div>
 
-            <!-- Tab Promociones -->
-            <div id="adminTab-promos" class="admin-tab-content hidden">
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" onclick="switchAdminSubTab('promos', 'form')">Crear / Editar Campaña</button>
-                    <button class="sub-tab-btn" onclick="switchAdminSubTab('promos', 'view')">Campañas Activas</button>
-                </div>
+        <!-- TAB 2: CAMPAÑAS -->
+        <div id="tabPromos" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Campañas</h3>
+            <input type="text" id="promoTitle" placeholder="Título (Ej: Combo Mensual)">
+            <label style="font-size:11px; color:#666;">Tienda Asignada:</label>
+            <select id="promoEstSelect"></select>
+            <button onclick="savePromo()">Guardar Campaña</button>
+            <table>
+                <thead><tr><th>Campaña</th><th>Tienda</th><th>Acciones</th></tr></thead>
+                <tbody id="adminPromosTable"></tbody>
+            </table>
+        </div>
 
-                <div id="promosSub-form" class="card">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;" id="promoFormTitle">CONFIGURAR CAMPAÑA</h3>
-                    <input type="hidden" id="editPromoId" value="">
-                    <div class="grid-2">
+        <!-- TAB 3: EMITIR -->
+        <div id="tabBonos" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Emitir Bono 9:16</h3>
+            <input type="text" id="clientName" placeholder="Nombre del Cliente">
+            <input type="text" id="clientPhone" placeholder="Teléfono / PIN de Caja">
+            <label style="font-size:11px; color:#666;">Fecha de Caducidad:</label>
+            <input type="date" id="clientExpiry">
+            <label style="font-size:11px; color:#666;">Términos y Condiciones:</label>
+            <textarea id="clientTerms" placeholder="Ej: Válido para 1 mes..." rows="2" style="resize: vertical; min-height: 50px;"></textarea>
+            <label style="font-size:11px; color:#666;">Imagen de Fondo (Dispositivo):</label>
+            <input type="file" id="bgImageFile" accept="image/*" onchange="previewImageFile(event)">
+            <label style="font-size:11px; color:#666;">Campaña:</label>
+            <select id="assignPromoSelect"></select>
+            <button onclick="generateCoupon()">Generar Tarjeta 9:16</button>
+            
+            <div id="previewContainer" class="hidden" style="margin-top:15px; text-align:center;">
+                <div id="couponCard" class="coupon-box" style="background-image: none;">
+                    <div class="coupon-overlay">
                         <div>
-                            <div class="form-group"><label>Título de Campaña</label><input type="text" id="promoTitle" placeholder="Ej: Pase Especial"></div>
-                            <div class="form-group"><label>Términos y Condiciones</label><textarea id="promoTerms" rows="3" placeholder="50% dcto..."></textarea></div>
-                            <div class="form-group"><label>Vigencia (Días)</label><input type="number" id="promoExpiryDaysVal" value="30"></div>
-                            <div class="form-group"><label>Tienda Patrocinadora</label><select id="promoEstablishment"></select></div>
+                            <span style="background:#fff; color:#000; font-size:9px; padding:2px 6px; font-weight:bold;">OFICIAL APEX</span>
+                            <p style="margin:8px 0 2px 0; font-size:11px; color:#ccc; font-style:italic;">Felicidades. Reto Apex superado.</p>
+                            <p style="margin:0; font-size:11px; color:#888;">Has obtenido un:</p>
                         </div>
                         <div>
-                            <div class="form-group"><label>Fondo (Imagen)</label><input type="file" id="promoImageFile" accept="image/*" onchange="handleImageUpload(event, 'bg')"><input type="hidden" id="promoImageBase64" value="https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600"></div>
-                            <div class="form-group"><label>Código QR Universal</label><input type="file" id="promoQrFile" accept="image/*" onchange="handleImageUpload(event, 'qr')"><input type="hidden" id="promoQrBase64" value=""></div>
-                            <button class="btn" id="promoSubmitBtn" onclick="savePromo(this)" style="width: 100%; margin-top: 1rem; justify-content: center;">Guardar Campaña</button>
-                            <button class="btn btn-secondary hidden" id="promoCancelEditBtn" onclick="cancelPromoEdit()" style="width: 100%; margin-top: 0.5rem; justify-content: center;">Cancelar</button>
+                            <h3 id="prevTitle" style="margin:5px 0; font-size:14px; color:#fff; text-transform:uppercase;"></h3>
+                            <h1 id="prevClient" style="margin:8px 0; font-size:32px; font-weight:900; color:#fff; line-height:1.1; word-break: break-word;"></h1>
+                            <p id="prevTerms" style="margin:8px 0; font-size:11px; color:#aaa; line-height:1.3;"></p>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top:8px;">
+                            <p id="prevPhone" style="margin:2px 0; color:#fff; font-weight:bold; font-size:12px;"></p>
+                            <p id="prevExpiry" style="margin:2px 0; font-size:9px; color:#777;"></p>
                         </div>
                     </div>
                 </div>
+                <button onclick="downloadCard()" style="margin-top:10px;">📥 Descargar Imagen 9:16</button>
+            </div>
+        </div>
 
-                <div id="promosSub-view" class="card hidden">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">LISTADO DE CAMPAÑAS</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Campaña</th><th>Tienda</th><th>Estado</th><th>Acciones</th></tr></thead>
-                            <tbody id="promosTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- TAB 4: LISTADO -->
+        <div id="tabList" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Listado General y Edición</h3>
+            <table>
+                <thead><tr><th>Cliente</th><th>PIN</th><th>Campaña</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="adminBonosTable"></tbody>
+            </table>
+        </div>
+
+        <!-- TAB 5: EMBUDO -->
+        <div id="tabFunnel" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Embudo y Filtros Dinámicos</h3>
+            <label style="font-size:11px; color:#666;">Tienda:</label>
+            <select id="filterStore" onchange="renderFunnel()"><option value="all">Todas</option></select>
+            <label style="font-size:11px; color:#666;">Campaña:</label>
+            <select id="filterPromo" onchange="renderFunnel()"><option value="all">Todas</option></select>
+            <label style="font-size:11px; color:#666;">Periodo:</label>
+            <select id="filterPeriod" onchange="renderFunnel()">
+                <option value="month">Este mes</option>
+                <option value="all">Todo el tiempo</option>
+                <option value="week">Última semana</option>
+                <option value="quarter">Último trimestre</option>
+            </select>
+            
+            <div class="funnel-grid" style="margin-top:12px;">
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">TOTAL</small><span id="funnelTotal">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">REDIMIDOS</small><span id="funnelRedeemed">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">VENCIDOS</small><span id="funnelExpired">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#666;">EFICIENCIA</small><span id="funnelRate">0%</span></div>
             </div>
 
-            <!-- Tab Bonos (Generación y Descarga de Tarjeta) -->
-            <div id="adminTab-users" class="admin-tab-content hidden">
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" onclick="switchAdminSubTab('bonos', 'form')">Emitir & Descargar Bono</button>
-                    <button class="sub-tab-btn" onclick="switchAdminSubTab('bonos', 'view')">Control de Bonos</button>
-                </div>
+            <h4 style="font-size: 12px; color:#aaa; margin:15px 0 5px 0;">Rendimiento por Tienda</h4>
+            <div id="chartContainer"></div>
+        </div>
 
-                <div id="bonosSub-form" class="card">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">EMITIR BONO VIP (RETO APEX)</h3>
-                    <div class="grid-2">
-                        <div>
-                            <div class="form-group"><label>Nombre del Beneficiario</label><input type="text" id="beneficiaryName" placeholder="Carlos Pérez"></div>
-                            <div class="form-group"><label>Teléfono (PIN de Caja)</label><input type="text" id="beneficiaryPhone" placeholder="3001234567"></div>
-                            <div class="form-group"><label>Campaña Asociada</label><select id="assignPromoSelect"></select></div>
-                            <button class="btn" id="couponSubmitBtn" style="width: 100%; margin-top: 1rem; justify-content: center;" onclick="generateAndShowCouponCard(this)">Generar Tarjeta de Bono</button>
-                        </div>
-                        <div style="text-align: center;">
-                            <label>Vista Previa del Bono Descargable</label>
-                            <div id="liveCouponPreviewContainer" style="display:flex; justify-content:center;">
-                                <p style="color:var(--text-muted); font-size:0.75rem; margin-top:2rem;">Genera un bono para visualizar y descargar la tarjeta gráfica.</p>
-                            </div>
-                            <button class="btn btn-success hidden" id="downloadCardBtn" style="margin-top: 1rem;" onclick="downloadCouponCard()">📥 Descargar Imagen del Bono</button>
-                        </div>
-                    </div>
-                </div>
+        <!-- TAB 6: AJUSTES ADMIN & LOGO -->
+        <div id="tabSettings" class="card admin-tab hidden">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Ajustes Generales y Logotipo</h3>
+            <label style="font-size:11px; color:#666;">Logotipo Global de la Aplicación:</label>
+            <input type="file" id="appLogoFile" accept="image/*" onchange="uploadAppLogo(event)">
+            <label style="font-size:11px; color:#666; margin-top:10px; display:block;">Usuario Maestro:</label>
+            <input type="text" id="newAdminUser" placeholder="Nuevo usuario maestro">
+            <button onclick="updateAdminUser()">Actualizar Usuario</button>
+        </div>
+    </section>
 
-                <div id="bonosSub-view" class="card hidden">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">CONTROL DE BONOS EMITIDOS</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Teléfono (PIN)</th><th>Beneficiario</th><th>Campaña</th><th>Estado</th><th>Acciones</th></tr></thead>
-                            <tbody id="usersTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <!-- PANEL DE TIENDA -->
+    <section id="establishmentDashboard" class="hidden">
+        <div class="nav-bar">
+            <button class="nav-btn active" onclick="switchStoreTab('storeRedeem')">Validador</button>
+            <button class="nav-btn" onclick="switchStoreTab('storeFunnel')">Embudo</button>
+            <button class="nav-btn" onclick="switchStoreTab('storeSettings')">Mi Usuario</button>
+        </div>
 
-            <!-- Tab Embudo (Solo Admin Maestro) -->
-            <div id="adminTab-funnel" class="admin-tab-content hidden">
-                <div class="card" id="exportableFunnelCard">
-                    <h3 style="margin-bottom: 1.2rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">ANÁLISIS COMERCIAL GLOBAL</h3>
-                    <div class="funnel-stats">
-                        <div class="stat-card"><h3 id="statTotal">0</h3><p>Emitidos</p></div>
-                        <div class="stat-card"><h3 id="statRedeemed" style="color:var(--success);">0</h3><p>Redimidos</p></div>
-                    </div>
-                    <div style="background:#000; border:1px solid var(--card-border); padding:1rem; border-radius:8px; margin-top:1rem;">
-                        <h4 style="color:var(--accent); font-size:0.8rem; margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:1px;">Línea de Actividad</h4>
-                        <div id="adminTimelineChart" style="max-height: 200px; overflow-y: auto;"></div>
-                    </div>
-                </div>
-                <button class="btn btn-secondary" onclick="exportExecutiveReport()" style="margin-top: 0.5rem; width: 100%;">📥 Descargar Imagen de Reporte Ejecutivo</button>
-            </div>
-
-            <!-- Tab Gestionar Gerentes (Solo Admin Maestro) -->
-            <div id="adminTab-managers" class="admin-tab-content hidden">
-                <div class="card">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">CREAR GERENTE DE VENTAS</h3>
-                    <div class="grid-2">
-                        <div class="form-group"><label>Nombre del Gerente</label><input type="text" id="newManagerName" placeholder="Ej: Ana Gómez"></div>
-                        <div class="form-group"><label>Usuario de Acceso</label><input type="text" id="newManagerUser" placeholder="Ej: gerente_ana"></div>
-                        <div class="form-group"><label>Contraseña</label><input type="password" id="newManagerPass" value="gerente123"></div>
-                    </div>
-                    <button class="btn" id="managerSubmitBtn" onclick="saveManagerAccount(this)" style="margin-top: 0.5rem;">Registrar Gerente</button>
-                </div>
-                <div class="card">
-                    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;">GERENTES AUTORIZADOS</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>Nombre</th><th>Usuario</th><th>Acción</th></tr></thead>
-                            <tbody id="managersTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PANEL DE ESTABLECIMIENTO / PATROCINADOR / CAJERO -->
-        <section id="establishmentDashboard" class="hidden">
-            <div class="tabs" id="estTabsContainer" style="margin-bottom: 1.5rem;">
-                <button class="tab-btn active" onclick="switchEstTab('requests')">Caja & Redención Presencial</button>
-                <button class="tab-btn est-owner-only" onclick="switchEstTab('employees')">Cajeros</button>
-                <button class="tab-btn est-owner-only" onclick="switchEstTab('crm')">CRM Leads</button>
-            </div>
-
-            <!-- Tab Caja Presencial -->
-            <div id="estTab-requests" class="est-tab-content card">
-                <h2 style="color: var(--accent); margin-bottom: 1rem; font-size: 0.9rem; letter-spacing: 1px;" id="estDashboardTitle">CAJA - VALIDACIÓN DE BONOS</h2>
-                <div class="funnel-stats" style="margin: 1rem 0;">
-                    <div class="stat-card"><h3 id="estStatActive" style="color:var(--warning);">0</h3><p>Disponibles</p></div>
-                    <div class="stat-card"><h3 id="estStatRedeemed" style="color:var(--success);">0</h3><p>Redimidos</p></div>
-                </div>
+        <!-- SUBTAB 1: VALIDADOR Y LISTA TÁCTIL -->
+        <div id="storeRedeem" class="store-subtab">
+            <div class="card">
+                <h3 id="estTitleHeader" style="font-size: 14px; margin-bottom: 5px;">Panel de Tienda</h3>
+                <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Busca al cliente o haz clic directo abajo en la lista.</p>
                 
-                <div style="background:#000; border:1px solid var(--card-border); padding:1rem; border-radius:8px; margin-bottom:1.5rem;">
-                    <h4 style="color:var(--accent); font-size:0.8rem; margin-bottom:0.8rem; text-transform:uppercase;">Validar Ingreso por Teléfono (PIN)</h4>
-                    <div class="grid-2" style="align-items: flex-end;">
-                        <div class="form-group" style="margin-bottom:0;"><label>Teléfono del Cliente</label><input type="text" id="cashierPhoneInput" placeholder="Ej: 3001234567"></div>
-                        <button class="btn btn-success" onclick="cashierRedeemByPhone()">Validar y Redimir Bono</button>
-                    </div>
-                </div>
+                <input type="text" id="searchClientInput" placeholder="Escribe el nombre del cliente..." oninput="filterClientSuggestions()">
+                <div id="clientSuggestions" class="suggestions-box hidden"></div>
 
-                <h3 style="color: var(--accent); margin-bottom: 0.8rem; font-size: 0.85rem; text-transform: uppercase;">Bonos Vigentes de la Tienda</h3>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Teléfono (PIN)</th><th>Beneficiario</th><th>Campaña</th><th>Estado</th></tr></thead>
-                        <tbody id="establishmentActiveBonosBody"></tbody>
-                    </table>
+                <div id="selectedClientBox" class="hidden" style="background:#0a0a0a; padding:10px; margin-top:10px; border-radius:4px; border: 1px solid #1a1a1a;">
+                    <p style="margin:0; font-size:13px; color:#fff;" id="lblSelectedInfo"></p>
+                    <input type="text" id="confirmPhoneInput" placeholder="Confirma el PIN / Teléfono">
+                    <button onclick="redeemCouponSecure()" style="margin-top:8px;">Validar y Redimir</button>
                 </div>
             </div>
 
-            <!-- Tab Cajeros (Solo Dueño) -->
-            <div id="estTab-employees" class="est-tab-content card hidden est-owner-only">
-                <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 0.9rem; letter-spacing: 1px;" id="empFormTitle">GESTIÓN DE CAJEROS</h3>
-                <input type="hidden" id="editEmpId" value="">
-                <div class="grid-2">
-                    <div class="form-group"><label>Nombre / Usuario</label><input type="text" id="newEmpName" placeholder="Cajero 1"></div>
-                    <div class="form-group"><label>Contraseña</label><input type="password" id="newEmpPass" value="1234"></div>
-                </div>
-                <button class="btn" id="empSubmitBtn" onclick="saveEmployeeAccount(this)" style="margin-bottom: 1.5rem;">Guardar Cajero</button>
-                <button class="btn btn-secondary hidden" id="empCancelEditBtn" onclick="cancelEmpEdit()" style="margin-bottom: 1.5rem; margin-left: 0.5rem;">Cancelar</button>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Nombre</th><th>Acciones</th></tr></thead>
-                        <tbody id="employeesTableBody"></tbody>
-                    </table>
+            <div class="card">
+                <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Bonos Registrados (Toca para seleccionar)</h3>
+                <table>
+                    <thead><tr><th>Cliente</th><th>Campaña</th><th>Vigencia</th></tr></thead>
+                    <tbody id="estBonosTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SUBTAB 2: EMBUDO TIENDA -->
+        <div id="storeFunnel" class="store-subtab hidden">
+            <div class="card">
+                <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Filtros de Embudo</h3>
+                <label style="font-size:11px; color:#666;">Campaña:</label>
+                <select id="storeFilterPromo" onchange="renderStoreFunnel()"><option value="all">Todas las campañas</option></select>
+                <label style="font-size:11px; color:#666;">Periodo:</label>
+                <select id="storeFilterPeriod" onchange="renderStoreFunnel()">
+                    <option value="month">Este mes</option>
+                    <option value="all">Histórico completo</option>
+                    <option value="quarter">Últimos 3 meses</option>
+                    <option value="custom">Personalizado</option>
+                </select>
+                <div id="storeCustomDates" class="hidden" style="margin-top:6px;">
+                    <input type="date" id="storeDateStart" onchange="renderStoreFunnel()">
+                    <input type="date" id="storeDateEnd" onchange="renderStoreFunnel()">
                 </div>
             </div>
 
-            <!-- Tab CRM Leads (Solo Dueño) -->
-            <div id="estTab-crm" class="est-tab-content card hidden est-owner-only">
-                <h3 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 0.9rem; letter-spacing: 1px;">BASE DE DATOS DE LEADS & CAJEROS</h3>
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.2rem;">✨ <em>Historial de redenciones presenciales y auditoría por operador.</em></p>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Fecha</th><th>Cliente</th><th>Teléfono</th><th>Campaña</th><th>Atendido Por (Cajero)</th></tr></thead>
-                        <tbody id="estClientCrmBody"></tbody>
-                    </table>
+            <div class="card" style="padding: 10px;">
+                <div class="funnel-grid">
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">ASIGNADOS</small><span id="storeMetricAssigned">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">REDIMIDOS</small><span id="storeMetricRedeemed">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">VENCIDOS</small><span id="storeMetricExpired">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#666;">EFICIENCIA</small><span id="storeMetricRate">0%</span></div>
                 </div>
             </div>
-        </section>
-    </main>
+        </div>
+
+        <!-- SUBTAB 3: CAMBIO DE NOMBRE DE USUARIO PROPIO -->
+        <div id="storeSettings" class="store-subtab hidden">
+            <div class="card">
+                <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Cambiar Mi Nombre de Usuario</h3>
+                <input type="text" id="storeNewName" placeholder="Nuevo nombre de usuario">
+                <button onclick="updateStoreName()">Guardar Nuevo Usuario</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="toast">Notificación</div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbye7o9P3ic0IAGhCspjO--Wj0_aqrKxC5nA97Yj72xjoSLjFuuuiwSCik0JXvuiTSFB/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyHRa1QCcltxjoF0FNxuAUeCZeKgNGdWVJ2NR3SYwkyv8b1M8ZqnzWQbX_7h08qr1DDew/exec";
 
-        const DB = {
-            data: { establishments: [], promos: [], users: [], managers: [] },
-            
-            async init() {
-                try {
-                    let res = await fetch(WEB_APP_URL + "?action=get_all");
-                    let json = await res.json();
-                    if(json.tiendas) this.data.establishments = json.tiendas;
-                    if(json.promociones) this.data.promos = json.promociones;
-                    if(json.bonos) this.data.users = json.bonos;
-                    if(json.gerentes) this.data.managers = json.gerentes;
-                } catch(e) {
-                    console.error("Error sincronizando con Google Sheets:", e);
-                }
-            },
-
-            get(key) {
-                if(key === 'establishments') return this.data.establishments;
-                if(key === 'promos') return this.data.promos;
-                if(key === 'users') return this.data.users;
-                if(key === 'managers') return this.data.managers;
-                return [];
-            },
-
-            async set(key, val) {
-                if(key === 'establishments') this.data.establishments = val;
-                if(key === 'promos') this.data.promos = val;
-                if(key === 'users') this.data.users = val;
-                if(key === 'managers') this.data.managers = val;
-            },
-
-            async saveRecord(sheetName, payload) {
-                try {
-                    await fetch(WEB_APP_URL, {
-                        method: "POST",
-                        body: JSON.stringify({ sheet: sheetName, action: "save", payload: payload })
-                    });
-                    await this.init();
-                } catch(e) {
-                    console.error("Error guardando en Google Sheets:", e);
-                }
-            },
-
-            async deleteRecord(sheetName, id) {
-                try {
-                    await fetch(WEB_APP_URL, {
-                        method: "POST",
-                        body: JSON.stringify({ sheet: sheetName, action: "delete", payload: { id: id } })
-                    });
-                    await this.init();
-                } catch(e) {
-                    console.error("Error eliminando en Google Sheets:", e);
-                }
-            }
-        };
-
-        if (!localStorage.getItem('apex_establishments')) DB.data.establishments = [{ id: 'est_1', name: 'Aquapark Las Tortugas', pass: '1234', employees: [{id: 'emp_1', name: 'Cajero 1', pass: '1234'}] }];
-        else DB.data.establishments = JSON.parse(localStorage.getItem('apex_establishments'));
-
-        if (!localStorage.getItem('apex_promos')) DB.data.promos = [{ id: 'promo_1', title: 'Pase Verano', terms: '50% dcto', estId: 'est_1', expiryDays: 30, status: 'activo', img: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600', qr: '' }];
-        else DB.data.promos = JSON.parse(localStorage.getItem('apex_promos'));
-
-        if (!localStorage.getItem('apex_users')) DB.data.users = [];
-        else DB.data.users = JSON.parse(localStorage.getItem('apex_users'));
-
-        if (!localStorage.getItem('apex_managers')) DB.data.managers = [{ id: 'mgr_1', name: 'Gerente Principal', username: 'gerente', pass: 'gerente123' }];
-        else DB.data.managers = JSON.parse(localStorage.getItem('apex_managers'));
-
+        let DB = { stores: [], promos: [], users: [] };
         let currentUser = null;
-        let lastGeneratedUserObj = null;
+        let lastCreatedUser = null;
+        let selectedTargetCoupon = null;
+        let currentBgDataUrl = '';
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            await DB.init();
-        });
-
-        function universalLogin() {
-            const idVal = document.getElementById('universalIdentifier').value.trim();
-            const passVal = document.getElementById('universalPassword').value.trim();
-
-            if(idVal === 'admin' && passVal === 'admin123') {
-                currentUser = { role: 'admin', name: 'Administrador Maestro', isMaster: true };
-                startSession();
-                return;
-            }
-
-            const managers = DB.get('managers');
-            let foundMgr = managers.find(m => m.username.toLowerCase() === idVal.toLowerCase() && String(m.pass) === String(passVal));
-            if(foundMgr) {
-                currentUser = { role: 'manager', name: foundMgr.name, isMaster: false };
-                startSession();
-                return;
-            }
-
-            const ests = DB.get('establishments');
-            let foundEst = ests.find(e => e.name.toLowerCase() === idVal.toLowerCase() && String(e.pass) === String(passVal));
-            if(foundEst) {
-                currentUser = { role: 'establishment', id: foundEst.id, name: foundEst.name, operator: 'Dueño Local', isOwner: true };
-                startSession();
-                return;
-            }
-
-            for(let est of ests) {
-                let emp = (est.employees || []).find(e => e.name.toLowerCase() === idVal.toLowerCase() && String(e.pass) === String(passVal));
-                if(emp) {
-                    currentUser = { role: 'establishment', id: est.id, name: est.name, operator: emp.name, isOwner: false };
-                    startSession();
-                    return;
-                }
-            }
-
-            alert('❌ Credenciales inválidas.');
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
         }
 
-        function startSession() {
-            document.getElementById('loginView').classList.add('hidden');
-            document.getElementById('userInfoHeader').classList.remove('hidden');
-            document.getElementById('headerRoleName').innerText = `${currentUser.name} (${currentUser.operator || currentUser.role.toUpperCase()})`;
-            document.querySelectorAll('main > section:not(#loginView)').forEach(s => s.classList.add('hidden'));
-
-            if(currentUser.role === 'admin' || currentUser.role === 'manager') {
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                const isMaster = currentUser.role === 'admin';
-                document.getElementById('adminFunnelTabBtn').classList.toggle('hidden', !isMaster);
-                document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.toggle('hidden', !isMaster));
-                loadAdminData();
-            } else if(currentUser.role === 'establishment') {
-                document.getElementById('establishmentDashboard').classList.remove('hidden');
-                document.querySelectorAll('.est-owner-only').forEach(el => el.classList.toggle('hidden', !currentUser.isOwner));
-                switchEstTab('requests');
+        async function loadData() {
+            try {
+                let res = await fetch(WEB_APP_URL + "?action=get_all");
+                let data = await res.json();
+                DB.stores = data.tiendas || [];
+                DB.promos = data.promociones || [];
+                DB.users = data.bonos || [];
+                checkGlobalLogo();
+            } catch(e) {
+                console.error("Error cargando datos:", e);
             }
         }
 
-        function logout() {
-            currentUser = null;
-            document.getElementById('userInfoHeader').classList.add('hidden');
-            document.getElementById('loginView').classList.remove('hidden');
-            document.querySelectorAll('main > section:not(#loginView)').forEach(s => s.classList.add('hidden'));
-        }
-
-        function switchAdminTab(tabName) {
-            if(tabName === 'funnel' && currentUser.role !== 'admin') return;
-            if(tabName === 'managers' && currentUser.role !== 'admin') return;
-            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('.tabs .tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`adminTab-${tabName}`).classList.remove('hidden');
-            event.currentTarget.classList.add('active');
-            if(tabName === 'funnel') updateFunnelMetrics();
-            if(tabName === 'stores') loadStoresData();
-            if(tabName === 'promos') loadAdminPromosData();
-            if(tabName === 'users') loadAdminUsersData();
-            if(tabName === 'managers') loadManagersData();
-        }
-
-        function switchAdminSubTab(section, subName) {
-            document.querySelectorAll(`#adminTab-${section} .sub-tab-btn`).forEach(b => b.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            if(section === 'stores') {
-                document.getElementById('storesSub-form').classList.toggle('hidden', subName !== 'form');
-                document.getElementById('storesSub-view').classList.toggle('hidden', subName !== 'view');
-                if(subName === 'view') loadStoresData();
-            } else if(section === 'promos') {
-                document.getElementById('promosSub-form').classList.toggle('hidden', subName !== 'form');
-                document.getElementById('promosSub-view').classList.toggle('hidden', subName !== 'view');
-                if(subName === 'view') loadAdminPromosData();
-            } else if(section === 'bonos') {
-                document.getElementById('bonosSub-form').classList.toggle('hidden', subName !== 'form');
-                document.getElementById('bonosSub-view').classList.toggle('hidden', subName !== 'view');
-                if(subName === 'view') loadAdminUsersData();
+        function checkGlobalLogo() {
+            let savedLogo = localStorage.getItem('apex_global_logo');
+            let logoEl = document.getElementById('globalAppLogo');
+            if(savedLogo) {
+                logoEl.src = savedLogo;
+                logoEl.style.display = 'block';
+            } else {
+                logoEl.style.display = 'none';
             }
         }
 
-        function switchEstTab(tabName) {
-            if(!currentUser.isOwner && tabName !== 'requests') return;
-            document.querySelectorAll('.est-tab-content').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('#estTabsContainer .tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`estTab-${tabName}`).classList.remove('hidden');
-            event.currentTarget.classList.add('active');
-            if(tabName === 'requests') loadEstablishmentActiveBonos();
-            if(tabName === 'employees') loadEstablishmentEmployeesManagement();
-            if(tabName === 'crm') loadEstablishmentCrm();
-        }
-
-        function loadAdminData() {
-            loadStoresData();
-            loadAdminPromosData();
-            loadAdminUsersData();
-            if(currentUser.role === 'admin') loadManagersData();
-            const ests = DB.get('establishments');
-            document.getElementById('promoEstablishment').innerHTML = ests.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-            const promos = DB.get('promos');
-            document.getElementById('assignPromoSelect').innerHTML = promos.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
-        }
-
-        function handleImageUpload(event, type) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
+        function uploadAppLogo(event) {
+            let file = event.target.files[0];
+            if(file) {
+                let reader = new FileReader();
                 reader.onload = function(e) {
-                    if(type === 'bg') document.getElementById('promoImageBase64').value = e.target.result;
-                    else if(type === 'qr') document.getElementById('promoQrBase64').value = e.target.result;
+                    localStorage.setItem('apex_global_logo', e.target.result);
+                    checkGlobalLogo();
+                    showToast('Logotipo actualizado');
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        function tempDisable(btn) {
-            btn.disabled = true;
-            setTimeout(() => { btn.disabled = false; }, 2000);
-        }
+        async function login() {
+            let val = document.getElementById('loginUser').value.trim().toLowerCase();
+            if(!val) { showToast('Ingresa un usuario'); return; }
+            await loadData();
 
-        // --- GERENTES ---
-        function loadManagersData() {
-            const managers = DB.get('managers');
-            document.getElementById('managersTableBody').innerHTML = managers.map(m => `
-                <tr><td>${m.name}</td><td><code>${m.username}</code></td><td><button class="btn btn-danger" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="deleteManager('${m.id}')">Eliminar</button></td></tr>
-            `).join('') || 'Sin gerentes';
-        }
-
-        async function saveManagerAccount(btn) {
-            const name = document.getElementById('newManagerName').value.trim();
-            const username = document.getElementById('newManagerUser').value.trim();
-            const pass = document.getElementById('newManagerPass').value.trim();
-            if(!name || !username || !pass) return alert('Completa todos los campos');
-
-            let managers = DB.get('managers');
-            if(managers.some(m => m.username.toLowerCase() === username.toLowerCase())) {
-                return alert('⚠️ Ya existe un gerente registrado con ese usuario.');
+            let adminUser = (localStorage.getItem('apex_admin_user') || 'admin').toLowerCase();
+            if(val === adminUser) {
+                currentUser = { role: 'admin', name: 'Administrador Maestro' };
+                startSession();
+                return;
             }
 
-            tempDisable(btn);
-            const newMgr = { id: 'mgr_' + Date.now(), name, username, pass };
-            managers.push(newMgr);
-            DB.set('managers', managers);
-            localStorage.setItem('apex_managers', JSON.stringify(managers));
-            await DB.saveRecord('Gerentes', newMgr);
-
-            document.getElementById('newManagerName').value = '';
-            document.getElementById('newManagerUser').value = '';
-            document.getElementById('newManagerPass').value = 'gerente123';
-            loadManagersData();
-            alert('¡Gerente registrado con éxito!');
-        }
-
-        async function deleteManager(mgrId) {
-            if(!confirm('⚠️ ¿Estás seguro de eliminar este gerente?')) return;
-            let managers = DB.get('managers').filter(m => m.id !== mgrId);
-            DB.set('managers', managers);
-            localStorage.setItem('apex_managers', JSON.stringify(managers));
-            await DB.deleteRecord('Gerentes', mgrId);
-            loadManagersData();
-        }
-
-        // --- TIENDAS ---
-        function loadStoresData() {
-            const ests = DB.get('establishments');
-            const promos = DB.get('promos');
-            const users = DB.get('users');
-            document.getElementById('storesTableBody').innerHTML = ests.map(e => {
-                const estPromos = promos.filter(p => p.estId === e.id);
-                const promosHtml = estPromos.map(p => {
-                    const pUsers = users.filter(u => u.promoId === p.id && u.status !== 'eliminado');
-                    const eff = pUsers.length > 0 ? ((pUsers.filter(u => u.status === 'redimido').length / pUsers.length) * 100).toFixed(1) : 0;
-                    return `<div>• ${p.title} [Efectividad: ${eff}%]</div>`;
-                }).join('') || 'Sin campañas';
-                return `<tr><td>${e.name}</td><td>${promosHtml}</td><td><button class="btn btn-secondary" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="editStore('${e.id}')">Editar</button> <button class="btn btn-danger" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="deleteStore('${e.id}')">Eliminar</button></td></tr>`;
-            }).join('');
-        }
-
-        async function saveStore(btn) {
-            const editId = document.getElementById('editStoreId').value;
-            const name = document.getElementById('storeNameInput').value.trim();
-            const pass = document.getElementById('storePassInput').value.trim();
-            if(!name) return;
-
-            let ests = DB.get('establishments');
-            if(!editId && ests.some(e => e.name.toLowerCase() === name.toLowerCase())) {
-                return alert('⚠️ Ya existe una tienda registrada con este nombre.');
+            let foundStore = DB.stores.find(s => s.name.toLowerCase() === val);
+            if(foundStore) {
+                currentUser = { role: 'store', ...foundStore };
+                startSession();
+                return;
             }
+            showToast('Usuario no encontrado');
+        }
 
-            tempDisable(btn);
-            let storeObj;
-            if(editId) {
-                let idx = ests.findIndex(e => e.id === editId);
-                if(idx !== -1) { 
-                    ests[idx].name = name; 
-                    if(pass) ests[idx].pass = pass; 
-                    storeObj = ests[idx];
-                }
-                cancelStoreEdit();
+        function startSession() {
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('currentUserBar').classList.remove('hidden');
+            document.getElementById('lblRoleInfo').innerText = `Conectado: ${currentUser.name}`;
+
+            if(currentUser.role === 'admin') {
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                renderAdminEverything();
             } else {
-                storeObj = { id: 'est_' + Date.now(), name, pass: pass || '1234', employees: [] };
-                ests.push(storeObj);
-            }
-            DB.set('establishments', ests);
-            localStorage.setItem('apex_establishments', JSON.stringify(ests));
-            await DB.saveRecord('Tiendas', { id: storeObj.id, name: storeObj.name, pass: storeObj.pass, createdAt: new Date().toISOString() });
-            
-            document.getElementById('storeNameInput').value = '';
-            document.getElementById('storePassInput').value = '1234';
-            loadAdminData();
-            alert('¡Tienda guardada con éxito!');
-        }
-
-        function editStore(id) {
-            const est = DB.get('establishments').find(e => e.id === id);
-            if(est) {
-                document.getElementById('editStoreId').value = est.id;
-                document.getElementById('storeNameInput').value = est.name;
-                document.getElementById('storePassInput').value = est.pass;
-                document.getElementById('storeSubmitBtn').innerText = 'Actualizar';
-                document.getElementById('storeCancelEditBtn').classList.remove('hidden');
-                switchAdminSubTab('stores', 'form');
+                document.getElementById('establishmentDashboard').classList.remove('hidden');
+                document.getElementById('estTitleHeader').innerText = `Tienda: ${currentUser.name}`;
+                renderStoreEverything();
             }
         }
 
-        function cancelStoreEdit() {
-            document.getElementById('editStoreId').value = '';
-            document.getElementById('storeNameInput').value = '';
-            document.getElementById('storePassInput').value = '1234';
-            document.getElementById('storeSubmitBtn').innerText = 'Guardar Tienda';
-            document.getElementById('storeCancelEditBtn').classList.add('hidden');
+        function logout() {
+            if(!confirm('¿Estás seguro de que deseas salir?')) return;
+            currentUser = null;
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('currentUserBar').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('establishmentDashboard').classList.add('hidden');
+            document.getElementById('loginUser').value = '';
+            showToast('Sesión cerrada');
+        }
+
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#adminDashboard .nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            event.target.classList.add('active');
+            if(tabId === 'tabFunnel') renderFunnel();
+        }
+
+        function switchStoreTab(tabId) {
+            document.querySelectorAll('.store-subtab').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#establishmentDashboard .nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            event.target.classList.add('active');
+            if(tabId === 'storeFunnel') renderStoreFunnel();
+        }
+
+        function renderAdminEverything() {
+            renderAdminSelects();
+            renderAdminStoresTable();
+            renderAdminPromosTable();
+            renderAdminTable();
+            renderFunnelFilters();
+        }
+
+        function renderStoreEverything() {
+            renderStoreTable();
+            renderStoreFunnelFilters();
+            renderStoreFunnel();
+        }
+
+        function updateAdminUser() {
+            let newUser = document.getElementById('newAdminUser').value.trim();
+            if(!newUser) { showToast('Ingresa un usuario'); return; }
+            localStorage.setItem('apex_admin_user', newUser);
+            document.getElementById('newAdminUser').value = '';
+            showToast('Usuario maestro actualizado');
+        }
+
+        async function updateStoreName() {
+            let newName = document.getElementById('storeNewName').value.trim();
+            if(!newName) { showToast('Ingresa un nombre'); return; }
+            currentUser.name = newName;
+            await postData('Tiendas', currentUser, 'save');
+            await loadData();
+            document.getElementById('storeNewName').value = '';
+            document.getElementById('estTitleHeader').innerText = `Tienda: ${currentUser.name}`;
+            showToast('Nombre actualizado');
+        }
+
+        // --- STORES CRUD ---
+        async function saveStore() {
+            let name = document.getElementById('storeName').value.trim();
+            if(!name) { showToast('Escribe el nombre'); return; }
+            await postData('Tiendas', { id: 'est_' + Date.now(), name: name, createdAt: new Date().toISOString() }, 'save');
+            document.getElementById('storeName').value = '';
+            await loadData();
+            renderAdminEverything();
+            showToast('Tienda guardada');
+        }
+
+        async function editStore(id) {
+            let store = DB.stores.find(s => s.id === id);
+            if(!store) return;
+            let newName = prompt("Editar nombre de tienda:", store.name);
+            if(newName === null) return;
+            store.name = newName.trim();
+            await postData('Tiendas', store, 'save');
+            await loadData();
+            renderAdminEverything();
+            showToast('Tienda actualizada');
         }
 
         async function deleteStore(id) {
-            if(!confirm('⚠️ ¿Estás seguro de eliminar esta tienda y sus datos asociados?')) return;
-            let ests = DB.get('establishments').filter(e => e.id !== id);
-            DB.set('establishments', ests);
-            localStorage.setItem('apex_establishments', JSON.stringify(ests));
-            await DB.deleteRecord('Tiendas', id);
-            loadAdminData();
+            if(!confirm('¿Eliminar tienda?')) return;
+            await postData('Tiendas', { id: id }, 'delete');
+            await loadData();
+            renderAdminEverything();
+            showToast('Tienda eliminada');
         }
 
-        // --- CAMPAÑAS ---
-        function loadAdminPromosData() {
-            const promos = DB.get('promos');
-            const ests = DB.get('establishments');
-            document.getElementById('promosTableBody').innerHTML = promos.map(p => {
-                const est = ests.find(e => e.id === p.estId);
-                return `<tr><td>${p.title}</td><td>${est ? est.name : 'N/A'}</td><td>${(p.status||'activo').toUpperCase()}</td><td><button class="btn btn-secondary" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="editPromo('${p.id}')">Editar</button> <button class="btn btn-danger" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="cancelCampaign('${p.id}')">Cancelar</button></td></tr>`;
-            }).join('');
+        function renderAdminStoresTable() {
+            document.getElementById('adminStoresTable').innerHTML = DB.stores.map(s => `
+                <tr><td><b>${s.name}</b></td>
+                <td>
+                    <button onclick="editStore('${s.id}')" style="padding:4px 8px; margin-right:4px;">✏️</button>
+                    <button onclick="deleteStore('${s.id}')" style="padding:4px 8px;" class="btn-danger">❌</button>
+                </td></tr>
+            `).join('') || `<tr><td colspan="2">Sin tiendas.</td></tr>`;
         }
 
-        async function savePromo(btn) {
-            const editId = document.getElementById('editPromoId').value;
-            const title = document.getElementById('promoTitle').value.trim();
-            const terms = document.getElementById('promoTerms').value.trim();
-            const expiryDays = document.getElementById('promoExpiryDaysVal').value;
-            const estId = document.getElementById('promoEstablishment').value;
-            const img = document.getElementById('promoImageBase64').value;
-            const qr = document.getElementById('promoQrBase64').value;
-            if(!title || !estId) return alert('Completa los campos obligatorios de la campaña.');
-
-            tempDisable(btn);
-            let promos = DB.get('promos');
-            let promoObj;
-            if(editId) {
-                let idx = promos.findIndex(p => p.id === editId);
-                if(idx !== -1) { 
-                    promos[idx] = { ...promos[idx], title, terms, expiryDays, estId, img, qr: qr || promos[idx].qr }; 
-                    promoObj = promos[idx];
-                }
-                cancelPromoEdit();
-            } else {
-                promoObj = { id: 'promo_' + Date.now(), title, terms, expiryDays, estId, status: 'activo', img, qr };
-                promos.push(promoObj);
-            }
-            DB.set('promos', promos);
-            localStorage.setItem('apex_promos', JSON.stringify(promos));
-            await DB.saveRecord('Promociones', promoObj);
-
+        // --- PROMOS CRUD ---
+        async function savePromo() {
+            let title = document.getElementById('promoTitle').value.trim();
+            let estId = document.getElementById('promoEstSelect').value;
+            if(!title || !estId) { showToast('Completa los campos'); return; }
+            await postData('Promociones', { id: 'promo_' + Date.now(), title: title, estId: estId }, 'save');
             document.getElementById('promoTitle').value = '';
-            document.getElementById('promoTerms').value = '';
-            document.getElementById('promoExpiryDaysVal').value = '30';
-            loadAdminData();
-            alert('¡Campaña guardada con éxito!');
+            await loadData();
+            renderAdminEverything();
+            showToast('Campaña guardada');
         }
 
-        function editPromo(id) {
-            const p = DB.get('promos').find(item => item.id === id);
-            if(p) {
-                document.getElementById('editPromoId').value = p.id;
-                document.getElementById('promoTitle').value = p.title;
-                document.getElementById('promoTerms').value = p.terms;
-                document.getElementById('promoExpiryDaysVal').value = p.expiryDays;
-                document.getElementById('promoEstablishment').value = p.estId;
-                switchAdminSubTab('promos', 'form');
+        async function editPromo(id) {
+            let promo = DB.promos.find(p => p.id === id);
+            if(!promo) return;
+            let newTitle = prompt("Editar título:", promo.title);
+            if(newTitle === null) return;
+            promo.title = newTitle.trim();
+            await postData('Promociones', promo, 'save');
+            await loadData();
+            renderAdminEverything();
+            showToast('Campaña actualizada');
+        }
+
+        async function deletePromo(id) {
+            if(!confirm('¿Eliminar campaña?')) return;
+            await postData('Promociones', { id: id }, 'delete');
+            await loadData();
+            renderAdminEverything();
+            showToast('Campaña eliminada');
+        }
+
+        function renderAdminPromosTable() {
+            document.getElementById('adminPromosTable').innerHTML = DB.promos.map(p => {
+                let st = DB.stores.find(s => s.id === p.estId);
+                return `<tr><td>${p.title}</td><td>${st ? st.name : 'N/A'}</td>
+                <td>
+                    <button onclick="editPromo('${p.id}')" style="padding:4px 8px; margin-right:4px;">✏️</button>
+                    <button onclick="deletePromo('${p.id}')" style="padding:4px 8px;" class="btn-danger">❌</button>
+                </td></tr>`;
+            }).join('') || `<tr><td colspan="3">Sin campañas.</td></tr>`;
+        }
+
+        function renderAdminSelects() {
+            document.getElementById('promoEstSelect').innerHTML = DB.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.getElementById('assignPromoSelect').innerHTML = DB.promos.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+        }
+
+        // --- COUPONS ---
+        function previewImageFile(event) {
+            let file = event.target.files[0];
+            if(file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    currentBgDataUrl = e.target.result;
+                    document.getElementById('couponCard').style.backgroundImage = `url('${currentBgDataUrl}')`;
+                };
+                reader.readAsDataURL(file);
             }
         }
 
-        function cancelPromoEdit() {
-            document.getElementById('editPromoId').value = '';
-            document.getElementById('promoTitle').value = '';
-            document.getElementById('promoTerms').value = '';
-        }
+        async function generateCoupon() {
+            let clientName = document.getElementById('clientName').value.trim();
+            let clientPhone = document.getElementById('clientPhone').value.trim();
+            let expiry = document.getElementById('clientExpiry').value;
+            let terms = document.getElementById('clientTerms').value.trim();
+            let promoId = document.getElementById('assignPromoSelect').value;
 
-        async function cancelCampaign(promoId) {
-            if(!confirm('⚠️ ¿Estás seguro de cancelar esta campaña?')) return;
-            let promos = DB.get('promos').filter(p => p.id !== promoId);
-            DB.set('promos', promos);
-            localStorage.setItem('apex_promos', JSON.stringify(promos));
-            await DB.deleteRecord('Promociones', promoId);
-            loadAdminData();
-        }
+            if(!clientName || !clientPhone || !promoId) { showToast('Completa los campos'); return; }
+            let promo = DB.promos.find(p => p.id === promoId);
 
-        // --- BONOS & GENERACIÓN DE TARJETA DESCARGABLE ---
-        function loadAdminUsersData() {
-            const users = DB.get('users').filter(u => u.status !== 'eliminado');
-            document.getElementById('usersTableBody').innerHTML = users.map(u => {
-                return `<tr><td><code>${u.phone}</code></td><td>${u.beneficiary}</td><td>${u.promoTitle}</td><td>${u.status.toUpperCase()}</td><td><button class="btn btn-danger" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="revokeUser('${u.id}')">Revocar</button></td></tr>`;
-            }).join('');
-        }
-
-        async function generateAndShowCouponCard(btn) {
-            const benName = document.getElementById('beneficiaryName').value.trim();
-            const benPhone = document.getElementById('beneficiaryPhone').value.trim();
-            const promo = DB.get('promos').find(p => p.id === document.getElementById('assignPromoSelect').value);
-            
-            if(!benName || !benPhone || !promo) {
-                return alert('Completa el nombre, teléfono y selecciona una campaña.');
-            }
-
-            tempDisable(btn);
-            let users = DB.get('users');
-            const newObj = {
-                id: 'user_' + Date.now(), beneficiary: benName, phone: benPhone, password: benPhone,
-                promoId: promo.id, promoTitle: promo.title, promoTerms: promo.terms, promoImg: promo.img, promoQr: promo.qr,
-                estId: promo.estId, status: 'asignado', createdAt: new Date().toISOString(),
-                expiryDate: new Date(Date.now() + (parseInt(promo.expiryDays)||30)*86400000).toISOString(),
-                requestedAt: '', redeemedAt: '', auditedBy: '', rejectReason: ''
+            let userObj = {
+                id: 'user_' + Date.now(),
+                beneficiary: clientName,
+                phone: clientPhone,
+                expiry: expiry || 'Sin caducidad',
+                terms: terms || 'Válido en establecimientos participantes.',
+                bgImage: currentBgDataUrl,
+                promoId: promo.id,
+                promoTitle: promo.title,
+                estId: promo.estId,
+                status: 'activo',
+                createdAt: new Date().toISOString(),
+                redeemedAt: ''
             };
-            users.push(newObj);
-            DB.set('users', users);
-            localStorage.setItem('apex_users', JSON.stringify(users));
-            await DB.saveRecord('Bonos', newObj);
 
-            lastGeneratedUserObj = newObj;
-            renderCouponPreview(newObj);
-            document.getElementById('downloadCardBtn').classList.remove('hidden');
-            loadAdminData();
-            alert('✅ Bono generado con éxito. Ya puedes descargar la tarjeta gráfica para enviarla por WhatsApp.');
+            await postData('Bonos', userObj, 'save');
+            lastCreatedUser = userObj;
+            await loadData();
+            renderAdminTable();
+
+            let card = document.getElementById('couponCard');
+            card.style.backgroundImage = currentBgDataUrl ? `url('${currentBgDataUrl}')` : 'none';
+
+            document.getElementById('prevTitle').innerText = promo.title;
+            document.getElementById('prevClient').innerText = clientName;
+            document.getElementById('prevTerms').innerText = terms;
+            document.getElementById('prevPhone').innerText = `PIN: ${clientPhone}`;
+            document.getElementById('prevExpiry').innerText = `Expira: ${expiry || 'N/A'}`;
+            document.getElementById('previewContainer').classList.remove('hidden');
+            showToast('Bono generado');
         }
 
-        function renderCouponPreview(userD) {
-            const container = document.getElementById('liveCouponPreviewContainer');
-            container.innerHTML = `
-                <div id="targetCouponCard" class="coupon-canvas-container" style="background-image: url('${userD.promoImg}');">
-                    <div class="coupon-overlay">
-                        <span class="coupon-badge">PREMIO RETO APEX</span>
-                        <h3 style="color: var(--accent); font-size: 1.05rem; font-weight: 700;">${userD.promoTitle}</h3>
-                        <p style="font-size: 0.65rem; color: var(--text-muted);">${userD.promoTerms}</p>
-                        <div style="background: rgba(0,0,0,0.9); border: 1px solid var(--accent); padding: 8px 10px; border-radius: 6px; width: 100%; margin: 0.3rem 0;">
-                            <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">Beneficiario & PIN Caja</p>
-                            <p style="color: var(--accent); font-size: 0.9rem; font-weight: 700;">${userD.beneficiary}</p>
-                            <p style="color: var(--success); font-size: 1rem; font-weight: 700; letter-spacing: 1px;">TEL: ${userD.phone}</p>
-                        </div>
-                        <div style="background: #fff; padding: 4px; border-radius: 4px; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="${userD.promoQr || 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Apex'}" style="max-width:100%; max-height:100%;">
-                        </div>
+        function downloadCard() {
+            let card = document.getElementById('couponCard');
+            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `Bono_Apex_${lastCreatedUser ? lastCreatedUser.beneficiary : 'Card'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        async function editCoupon(id) {
+            let user = DB.users.find(u => u.id === id);
+            if(!user) return;
+            let newName = prompt("Editar nombre:", user.beneficiary);
+            if(newName === null) return;
+            let newPhone = prompt("Editar PIN:", user.phone);
+            if(newPhone === null) return;
+            let newStatus = prompt("Editar estado (activo, redimido, vencido):", user.status);
+            if(newStatus === null) return;
+
+            user.beneficiary = newName.trim();
+            user.phone = newPhone.trim();
+            user.status = newStatus.trim().toLowerCase();
+
+            await postData('Bonos', user, 'save');
+            await loadData();
+            renderAdminTable();
+            showToast('Bono actualizado');
+        }
+
+        async function deleteCoupon(id) {
+            if(!confirm('¿Eliminar bono?')) return;
+            await postData('Bonos', { id: id }, 'delete');
+            await loadData();
+            renderAdminTable();
+            showToast('Bono eliminado');
+        }
+
+        function renderAdminTable() {
+            let valid = DB.users.filter(u => u.status !== 'eliminado');
+            document.getElementById('adminBonosTable').innerHTML = valid.map(u => `
+                <tr>
+                    <td>${u.beneficiary}</td>
+                    <td><code>${u.phone}</code></td>
+                    <td>${u.promoTitle}</td>
+                    <td><b>${u.status.toUpperCase()}</b></td>
+                    <td>
+                        <button onclick="editCoupon('${u.id}')" style="padding:4px 6px; margin-right:4px;">✏️</button>
+                        <button onclick="deleteCoupon('${u.id}')" style="padding:4px 6px;" class="btn-danger">❌</button>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="5">Sin bonos.</td></tr>`;
+        }
+
+        // --- ADMIN FUNNEL ---
+        function renderFunnelFilters() {
+            document.getElementById('filterStore').innerHTML = '<option value="all">Todas las Tiendas</option>' + DB.stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.getElementById('filterPromo').innerHTML = '<option value="all">Todas las Campañas</option>' + DB.promos.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+        }
+
+        function renderFunnel() {
+            let storeId = document.getElementById('filterStore').value;
+            let promoId = document.getElementById('filterPromo').value;
+            let period = document.getElementById('filterPeriod').value;
+            
+            let list = DB.users.filter(u => u.status !== 'eliminado');
+            if(storeId !== 'all') list = list.filter(u => u.estId === storeId);
+            if(promoId !== 'all') list = list.filter(u => u.promoId === promoId);
+
+            let now = new Date();
+            if(period === 'week') {
+                let past = new Date(); past.setDate(now.getDate() - 7);
+                list = list.filter(u => new Date(u.createdAt) >= past);
+            } else if(period === 'month') {
+                list = list.filter(u => {
+                    let d = new Date(u.createdAt);
+                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                });
+            } else if(period === 'quarter') {
+                let past = new Date(); past.setMonth(now.getMonth() - 3);
+                list = list.filter(u => new Date(u.createdAt) >= past);
+            }
+
+            let total = list.length;
+            let redeemed = list.filter(u => u.status === 'redimido').length;
+            let expired = list.filter(u => u.status === 'vencido' || (u.expiry !== 'Sin caducidad' && new Date(u.expiry) < now)).length;
+            let rate = total > 0 ? Math.round((redeemed / total) * 100) : 0;
+
+            document.getElementById('funnelTotal').innerText = total;
+            document.getElementById('funnelRedeemed').innerText = redeemed;
+            document.getElementById('funnelExpired').innerText = expired;
+            document.getElementById('funnelRate').innerText = rate + '%';
+
+            let chartHtml = '';
+            DB.stores.forEach(s => {
+                let sBonos = list.filter(u => u.estId === s.id);
+                let sTotal = sBonos.length;
+                let sRed = sBonos.filter(u => u.status === 'redimido').length;
+                let pct = sTotal > 0 ? Math.round((sRed / sTotal) * 100) : 0;
+
+                chartHtml += `
+                    <div style="font-size:11px; margin-top:4px;">${s.name} (${sRed}/${sTotal})</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${pct}%;"></div>
+                        <div class="bar-text">${pct}% redimido</div>
                     </div>
+                `;
+            });
+            document.getElementById('chartContainer').innerHTML = chartHtml || '<p style="font-size:11px; color:#666;">Sin datos</p>';
+        }
+
+        // --- STORE ACTIONS ---
+        function renderStoreTable() {
+            let storeBonos = DB.users.filter(u => u.estId === currentUser.id && u.status !== 'eliminado');
+            let today = new Date();
+
+            document.getElementById('estBonosTable').innerHTML = storeBonos.map(u => {
+                let badgeStyle = "color: #fff;";
+                let statusText = u.status.toUpperCase();
+                if(u.status === 'redimido') { statusText = 'REDIMIDO'; badgeStyle = "color: #888;"; }
+                else if(u.expiry !== 'Sin caducidad' && new Date(u.expiry) < today) { statusText = 'VENCIDO'; badgeStyle = "color: #555;"; }
+
+                return `
+                    <tr class="clickable-row" onclick='selectClientForRedeem(${JSON.stringify(u)})'>
+                        <td><b>${u.beneficiary}</b></td>
+                        <td>${u.promoTitle}</td>
+                        <td><span style="${badgeStyle} font-weight:bold;">${statusText}</span><br><small style="color:#666;">Exp: ${u.expiry}</small></td>
+                    </tr>
+                `;
+            }).join('') || `<tr><td colspan="3">Sin bonos.</td></tr>`;
+        }
+
+        function filterClientSuggestions() {
+            let query = document.getElementById('searchClientInput').value.trim().toLowerCase();
+            let box = document.getElementById('clientSuggestions');
+
+            if(!query) { box.classList.add('hidden'); return; }
+
+            let matches = DB.users.filter(u => u.estId === currentUser.id && u.status === 'activo' && u.beneficiary.toLowerCase().includes(query));
+
+            if(matches.length === 0) {
+                box.innerHTML = '<div class="suggestion-item">No se encontraron clientes activos</div>';
+                box.classList.remove('hidden');
+                return;
+            }
+
+            box.innerHTML = matches.map(u => `
+                <div class="suggestion-item" onclick='selectClientForRedeem(${JSON.stringify(u)})'>
+                    👤 <b>${u.beneficiary}</b> - ${u.promoTitle} (Exp: ${u.expiry})
                 </div>
-            `;
+            `).join('');
+            box.classList.remove('hidden');
         }
 
-        function downloadCouponCard() {
-            const card = document.getElementById('targetCouponCard');
-            if(!card) return alert('No hay tarjeta para descargar.');
-            html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#000000' }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Bono_Apex_${lastGeneratedUserObj ? lastGeneratedUserObj.phone : 'Card'}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
+        function selectClientForRedeem(coupon) {
+            selectedTargetCoupon = coupon;
+            document.getElementById('searchClientInput').value = coupon.beneficiary;
+            document.getElementById('clientSuggestions').classList.add('hidden');
+            document.getElementById('lblSelectedInfo').innerText = `Seleccionado: ${coupon.beneficiary} (${coupon.promoTitle})`;
+            document.getElementById('selectedClientBox').classList.remove('hidden');
         }
 
-        async function revokeUser(id) {
-            if(!confirm('⚠️ ¿Estás seguro de revocar este bono?')) return;
-            let users = DB.get('users');
-            const idx = users.findIndex(u => u.id === id);
-            if(idx !== -1 && users[idx].status !== 'redimido') { 
-                users[idx].status = 'eliminado'; 
-                DB.set('users', users); 
-                localStorage.setItem('apex_users', JSON.stringify(users));
-                await DB.saveRecord('Bonos', users[idx]);
-                loadAdminData(); 
+        async function redeemCouponSecure() {
+            let enteredPhone = document.getElementById('confirmPhoneInput').value.trim();
+            if(!selectedTargetCoupon || !enteredPhone) { showToast('Ingresa el PIN'); return; }
+
+            if(String(selectedTargetCoupon.phone).trim() !== enteredPhone) {
+                showToast('PIN incorrecto');
+                return;
             }
-        }
 
-        // --- EMBUDO Y EXPORTACIÓN A IMAGEN ---
-        function updateFunnelMetrics() {
-            if(currentUser.role !== 'admin') return;
-            let users = DB.get('users').filter(u => u.status !== 'eliminado');
-            document.getElementById('statTotal').innerText = users.length;
-            document.getElementById('statRedeemed').innerText = users.filter(u => u.status === 'redimido').length;
-            document.getElementById('adminTimelineChart').innerHTML = users.map(u => `<div class="timeline-bar"><span>${new Date(u.createdAt).toLocaleDateString()} - ${u.beneficiary} (${u.phone})</span><span>${u.status.toUpperCase()}</span></div>`).join('') || 'Sin registros';
-        }
+            await loadData();
+            let idx = DB.users.findIndex(u => u.id === selectedTargetCoupon.id);
+            if(idx === -1) { showToast('Bono no encontrado'); return; }
 
-        function exportExecutiveReport() {
-            const card = document.getElementById('exportableFunnelCard');
-            html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#000000' }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Reporte_Ejecutivo_Apex_${new Date().toISOString().split('T')[0]}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
-        }
+            DB.users[idx].status = 'redimido';
+            DB.users[idx].redeemedAt = new Date().toISOString();
 
-        // --- ESTABLECIMIENTO, CAJA PRESENCIAL Y CRM ---
-        function loadEstablishmentActiveBonos() {
-            document.getElementById('estDashboardTitle').innerText = `CAJA - ${currentUser.name} [${currentUser.operator}]`;
-            let users = DB.get('users').filter(u => u.estId === currentUser.id && u.status !== 'eliminado');
-            document.getElementById('estStatActive').innerText = users.filter(u => u.status === 'asignado').length;
-            document.getElementById('estStatRedeemed').innerText = users.filter(u => u.status === 'redimido').length;
+            await postData('Bonos', DB.users[idx], 'save');
             
-            document.getElementById('establishmentActiveBonosBody').innerHTML = users.map(u => `
-                <tr><td><code>${u.phone}</code></td><td>${u.beneficiary}</td><td>${u.promoTitle}</td><td>${u.status.toUpperCase()}</td></tr>
-            `).join('') || `<tr><td colspan="4" style="color:var(--text-muted);">Sin bonos registrados.</td></tr>`;
+            document.getElementById('searchClientInput').value = '';
+            document.getElementById('confirmPhoneInput').value = '';
+            document.getElementById('selectedClientBox').classList.add('hidden');
+            selectedTargetCoupon = null;
+
+            await loadData();
+            renderStoreTable();
+            renderStoreFunnel();
+            showToast('¡Bono redimido con éxito!');
         }
 
-        async function cashierRedeemByPhone() {
-            const phoneVal = document.getElementById('cashierPhoneInput').value.trim();
-            if(!phoneVal) return alert('Ingresa el número de teléfono del cliente.');
+        function renderStoreFunnelFilters() {
+            let storePromos = DB.promos.filter(p => p.estId === currentUser.id);
+            document.getElementById('storeFilterPromo').innerHTML = '<option value="all">Todas las campañas</option>' + storePromos.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+        }
 
-            let users = DB.get('users');
-            const idx = users.findIndex(u => u.phone === phoneVal && u.estId === currentUser.id && u.status === 'asignado');
-            
-            if(idx === -1) {
-                return alert('❌ No se encontró un bono activo con este teléfono para tu establecimiento.');
+        function renderStoreFunnel() {
+            let promoId = document.getElementById('storeFilterPromo').value;
+            let period = document.getElementById('storeFilterPeriod').value;
+
+            document.getElementById('storeCustomDates').classList.toggle('hidden', period !== 'custom');
+
+            let storeBonos = DB.users.filter(u => u.estId === currentUser.id && u.status !== 'eliminado');
+            if(promoId !== 'all') storeBonos = storeBonos.filter(u => u.promoId === promoId);
+
+            let now = new Date();
+            if(period === 'month') {
+                storeBonos = storeBonos.filter(u => {
+                    let d = new Date(u.createdAt);
+                    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                });
+            } else if(period === 'quarter') {
+                let past = new Date(); past.setMonth(now.getMonth() - 3);
+                storeBonos = storeBonos.filter(u => new Date(u.createdAt) >= past);
+            } else if(period === 'custom') {
+                let dStart = document.getElementById('storeDateStart').value;
+                let dEnd = document.getElementById('storeDateEnd').value;
+                if(dStart) storeBonos = storeBonos.filter(u => new Date(u.createdAt) >= new Date(dStart));
+                if(dEnd) storeBonos = storeBonos.filter(u => new Date(u.createdAt) <= new Date(dEnd + 'T23:59:59'));
             }
 
-            users[idx].status = 'redimido';
-            users[idx].redeemedAt = new Date().toISOString();
-            users[idx].auditedBy = currentUser.operator;
-            
-            DB.set('users', users);
-            localStorage.setItem('apex_users', JSON.stringify(users));
-            await DB.saveRecord('Bonos', users[idx]);
+            let total = storeBonos.length;
+            let redeemed = storeBonos.filter(u => u.status === 'redimido').length;
+            let expired = storeBonos.filter(u => u.status === 'vencido' || (u.expiry !== 'Sin caducidad' && new Date(u.expiry) < now)).length;
+            let rate = total > 0 ? Math.round((redeemed / total) * 100) : 0;
 
-            document.getElementById('cashierPhoneInput').value = '';
-            loadEstablishmentActiveBonos();
-            alert(`✅ ¡Bono redimido con éxito para ${users[idx].beneficiary}! Atendido por: ${currentUser.operator}`);
+            document.getElementById('storeMetricAssigned').innerText = total;
+            document.getElementById('storeMetricRedeemed').innerText = redeemed;
+            document.getElementById('storeMetricExpired').innerText = expired;
+            document.getElementById('storeMetricRate').innerText = rate + '%';
         }
 
-        function loadEstablishmentEmployeesManagement() {
-            if(!currentUser.isOwner) return;
-            const est = DB.get('establishments').find(e => e.id === currentUser.id);
-            document.getElementById('employeesTableBody').innerHTML = (est.employees || []).map(emp => `
-                <tr><td>${emp.name}</td><td><button class="btn btn-danger" style="padding:0.2rem 0.4rem; font-size:0.65rem;" onclick="deleteEmployee('${emp.id}')">Eliminar</button></td></tr>
-            `).join('') || 'Sin cajeros';
-        }
-
-        async function saveEmployeeAccount(btn) {
-            if(!currentUser.isOwner) return;
-            const name = document.getElementById('newEmpName').value.trim();
-            const pass = document.getElementById('newEmpPass').value.trim();
-            if(!name) return;
-
-            tempDisable(btn);
-            let ests = DB.get('establishments');
-            const idx = ests.findIndex(e => e.id === currentUser.id);
-            if(idx !== -1) {
-                if(!ests[idx].employees) ests[idx].employees = [];
-                const empObj = { id: 'emp_' + Date.now(), name, pass };
-                ests[idx].employees.push(empObj);
-                DB.set('establishments', ests);
-                localStorage.setItem('apex_establishments', JSON.stringify(ests));
-                await DB.saveRecord('Cajeros', { estId: ests[idx].id, empId: empObj.id, name: empObj.name, pass: empObj.pass });
-                
-                document.getElementById('newEmpName').value = '';
-                document.getElementById('newEmpPass').value = '1234';
-                loadEstablishmentEmployeesManagement();
-                alert('¡Cajero guardado con éxito!');
-            }
-        }
-
-        async function deleteEmployee(empId) {
-            if(!currentUser.isOwner) return;
-            if(!confirm('⚠️ ¿Estás seguro de eliminar este cajero?')) return;
-            let ests = DB.get('establishments');
-            const idx = ests.findIndex(e => e.id === currentUser.id);
-            if(idx !== -1) {
-                ests[idx].employees = (ests[idx].employees || []).filter(e => e.id !== empId);
-                DB.set('establishments', ests);
-                localStorage.setItem('apex_establishments', JSON.stringify(ests));
-                await DB.deleteRecord('Cajeros', empId);
-                loadEstablishmentEmployeesManagement();
+        async function postData(sheetName, payload, action = "save") {
+            try {
+                let res = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ sheet: sheetName, action: action, payload: payload })
+                });
+                return await res.json();
+            } catch(e) {
+                console.error("Error al guardar en Sheets:", e);
             }
         }
 
-        function loadEstablishmentCrm() {
-            if(!currentUser.isOwner) return;
-            const users = DB.get('users').filter(u => u.estId === currentUser.id && u.status === 'redimido');
-            document.getElementById('estClientCrmBody').innerHTML = users.map(u => `
-                <tr><td>${u.redeemedAt ? u.redeemedAt.split('T')[0] : 'Hoy'}</td><td><strong>${u.beneficiary}</strong></td><td><code>${u.phone}</code></td><td>${u.promoTitle}</td><td><span style="color:var(--success); font-weight:600;">${u.auditedBy || 'Dueño Local'}</span></td></tr>
-            `).join('') || 'Sin leads redimidos';
-        }
+        loadData();
     </script>
 </body>
 </html>
