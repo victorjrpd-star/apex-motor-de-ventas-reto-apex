@@ -10,7 +10,6 @@
         .card { background: #050505; border: 1px solid #1a1a1a; padding: 18px; margin-bottom: 15px; border-radius: 6px; max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.9); }
         input, select, textarea, button { width: 100%; padding: 11px; margin: 8px 0; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; font-family: inherit; }
         
-        /* Botones Estilo Apex (Noir Minimalista) */
         button { background: #fff; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; border: 1px solid #fff; transition: all 0.2s ease; }
         button:hover { background: #000; color: #fff; border-color: #fff; }
         button:active { transform: scale(0.97); }
@@ -23,12 +22,10 @@
         th, td { border: 1px solid #1a1a1a; padding: 8px; text-align: left; }
         th { background: #0a0a0a; color: #777; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Navegación por pestañas con transición suave */
         .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-around; background: #080808; padding: 6px; border-radius: 6px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; gap: 4px; border: 1px solid #1a1a1a; }
         .nav-btn { background: transparent; color: #777; border: none; font-size: 10px; cursor: pointer; padding: 6px; flex: 1; min-width: 55px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
         .nav-btn.active { color: #fff; border-bottom: 2px solid #fff; font-weight: bold; }
 
-        /* Tarjeta 9:16 Vertical */
         .coupon-box { 
             position: relative; background-size: cover; background-position: center; 
             border: 2px solid #fff; text-align: center; margin-top: 10px; 
@@ -54,7 +51,6 @@
         .clickable-row { cursor: pointer; transition: background 0.15s; }
         .clickable-row:hover { background: #111; }
 
-        /* Notificación Toast Nativa */
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 12px; letter-spacing: 1px; box-shadow: 0 5px 20px rgba(255,255,255,0.2); transition: transform 0.3s ease; z-index: 1000; text-transform: uppercase; }
         #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
@@ -72,15 +68,13 @@
         </div>
     </div>
 
-    <!-- LOGIN -->
     <section id="loginView" class="card">
         <h3 style="font-size: 13px; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Acceso al Sistema</h3>
-        <p style="font-size: 11px; color: #666;">Usa <code>admin</code> o escribe el nombre exacto de la tienda.</p>
-        <input type="text" id="loginUser" placeholder="Usuario (Ej: admin o Tienda)">
+        <p style="font-size: 11px; color: #666;">Usa tu usuario registrado (Ej: <code>admin</code> o nombre de tienda).</p>
+        <input type="text" id="loginUser" placeholder="Usuario / Nombre">
         <button onclick="login()">Ingresar</button>
     </section>
 
-    <!-- PANEL ADMINISTRADOR MAESTRO -->
     <section id="adminDashboard" class="hidden">
         <div class="nav-bar">
             <button class="nav-btn active" onclick="switchAdminTab('tabStores')">Tiendas</button>
@@ -91,18 +85,16 @@
             <button class="nav-btn" onclick="switchAdminTab('tabSettings')">Ajustes</button>
         </div>
 
-        <!-- TAB 1: TIENDAS -->
         <div id="tabStores" class="card admin-tab">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Tiendas y Accesos</h3>
-            <input type="text" id="storeName" placeholder="Nombre de la Tienda">
-            <button onclick="saveStore()">Guardar Tienda</button>
+            <input type="text" id="storeName" placeholder="Nombre de la Tienda / Admin">
+            <button onclick="saveStore()">Guardar Usuario</button>
             <table>
-                <thead><tr><th>Nombre de Usuario / Acceso</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Usuario / Tienda</th><th>Acciones</th></tr></thead>
                 <tbody id="adminStoresTable"></tbody>
             </table>
         </div>
 
-        <!-- TAB 2: CAMPAÑAS -->
         <div id="tabPromos" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Campañas</h3>
             <input type="text" id="promoTitle" placeholder="Título (Ej: Combo Mensual)">
@@ -115,7 +107,6 @@
             </table>
         </div>
 
-        <!-- TAB 3: EMITIR -->
         <div id="tabBonos" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Emitir Bono 9:16</h3>
             <input type="text" id="clientName" placeholder="Nombre del Cliente">
@@ -153,7 +144,6 @@
             </div>
         </div>
 
-        <!-- TAB 4: LISTADO -->
         <div id="tabList" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Listado General y Edición</h3>
             <table>
@@ -162,7 +152,6 @@
             </table>
         </div>
 
-        <!-- TAB 5: EMBUDO -->
         <div id="tabFunnel" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Embudo y Filtros Dinámicos</h3>
             <label style="font-size:11px; color:#666;">Tienda:</label>
@@ -188,18 +177,13 @@
             <div id="chartContainer"></div>
         </div>
 
-        <!-- TAB 6: AJUSTES ADMIN & LOGO -->
         <div id="tabSettings" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Ajustes Generales y Logotipo</h3>
             <label style="font-size:11px; color:#666;">Logotipo Global de la Aplicación:</label>
             <input type="file" id="appLogoFile" accept="image/*" onchange="uploadAppLogo(event)">
-            <label style="font-size:11px; color:#666; margin-top:10px; display:block;">Usuario Maestro:</label>
-            <input type="text" id="newAdminUser" placeholder="Nuevo usuario maestro">
-            <button onclick="updateAdminUser()">Actualizar Usuario</button>
         </div>
     </section>
 
-    <!-- PANEL DE TIENDA -->
     <section id="establishmentDashboard" class="hidden">
         <div class="nav-bar">
             <button class="nav-btn active" onclick="switchStoreTab('storeRedeem')">Validador</button>
@@ -207,7 +191,6 @@
             <button class="nav-btn" onclick="switchStoreTab('storeSettings')">Mi Usuario</button>
         </div>
 
-        <!-- SUBTAB 1: VALIDADOR Y LISTA TÁCTIL -->
         <div id="storeRedeem" class="store-subtab">
             <div class="card">
                 <h3 id="estTitleHeader" style="font-size: 14px; margin-bottom: 5px;">Panel de Tienda</h3>
@@ -232,7 +215,6 @@
             </div>
         </div>
 
-        <!-- SUBTAB 2: EMBUDO TIENDA -->
         <div id="storeFunnel" class="store-subtab hidden">
             <div class="card">
                 <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Filtros de Embudo</h3>
@@ -261,7 +243,6 @@
             </div>
         </div>
 
-        <!-- SUBTAB 3: CAMBIO DE NOMBRE DE USUARIO PROPIO -->
         <div id="storeSettings" class="store-subtab hidden">
             <div class="card">
                 <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Cambiar Mi Nombre de Usuario</h3>
@@ -331,9 +312,10 @@
             if(!val) { showToast('Ingresa un usuario'); return; }
             await loadData();
 
-            let adminUser = (localStorage.getItem('apex_admin_user') || 'admin').toLowerCase();
-            if(val === adminUser) {
-                currentUser = { role: 'admin', name: 'Administrador Maestro' };
+            // El usuario administrador se identifica si su nombre en la tabla de tiendas es 'admin' (o puedes registrar una tienda llamada 'admin')
+            let foundAdmin = DB.stores.find(s => s.name.toLowerCase() === 'admin' && s.name.toLowerCase() === val);
+            if(val === 'admin' || foundAdmin) {
+                currentUser = { role: 'admin', name: foundAdmin ? foundAdmin.name : 'admin' };
                 startSession();
                 return;
             }
@@ -403,14 +385,6 @@
             renderStoreFunnel();
         }
 
-        function updateAdminUser() {
-            let newUser = document.getElementById('newAdminUser').value.trim();
-            if(!newUser) { showToast('Ingresa un usuario'); return; }
-            localStorage.setItem('apex_admin_user', newUser);
-            document.getElementById('newAdminUser').value = '';
-            showToast('Usuario maestro actualizado');
-        }
-
         async function updateStoreName() {
             let newName = document.getElementById('storeNewName').value.trim();
             if(!newName) { showToast('Ingresa un nombre'); return; }
@@ -430,27 +404,31 @@
             document.getElementById('storeName').value = '';
             await loadData();
             renderAdminEverything();
-            showToast('Tienda guardada');
+            showToast('Usuario guardado');
         }
 
         async function editStore(id) {
             let store = DB.stores.find(s => s.id === id);
             if(!store) return;
-            let newName = prompt("Editar nombre de tienda:", store.name);
+            let newName = prompt("Editar nombre de usuario:", store.name);
             if(newName === null) return;
             store.name = newName.trim();
             await postData('Tiendas', store, 'save');
             await loadData();
             renderAdminEverything();
-            showToast('Tienda actualizada');
+            showToast('Usuario actualizado');
         }
 
         async function deleteStore(id) {
-            if(!confirm('¿Eliminar tienda?')) return;
+            let store = DB.stores.find(s => s.id === id);
+            if(store && store.name.toLowerCase() === 'admin') {
+                return alert('⚠️ No puedes eliminar el usuario administrador principal.');
+            }
+            if(!confirm('¿Eliminar usuario?')) return;
             await postData('Tiendas', { id: id }, 'delete');
             await loadData();
             renderAdminEverything();
-            showToast('Tienda eliminada');
+            showToast('Usuario eliminado');
         }
 
         function renderAdminStoresTable() {
@@ -458,9 +436,9 @@
                 <tr><td><b>${s.name}</b></td>
                 <td>
                     <button onclick="editStore('${s.id}')" style="padding:4px 8px; margin-right:4px;">✏️</button>
-                    <button onclick="deleteStore('${s.id}')" style="padding:4px 8px;" class="btn-danger">❌</button>
+                    ${s.name.toLowerCase() !== 'admin' ? `<button onclick="deleteStore('${s.id}')" style="padding:4px 8px;" class="btn-danger">❌</button>` : ''}
                 </td></tr>
-            `).join('') || `<tr><td colspan="2">Sin tiendas.</td></tr>`;
+            `).join('') || `<tr><td colspan="2">Sin usuarios.</td></tr>`;
         }
 
         // --- PROMOS CRUD ---
