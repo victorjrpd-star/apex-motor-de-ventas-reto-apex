@@ -417,6 +417,17 @@
                 if(setStore && setStore.terms) {
                     try { globalSettings = JSON.parse(setStore.terms); } catch(e){}
                 }
+
+                // Fallback automático inteligente: Si por alguna razón la BD no tiene la ruta pero los archivos ya existen en el Storage, los enlazamos de inmediato
+                if(!globalSettings.logo) {
+                    let { data: logoUrl } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl('global-logo.png');
+                    if(logoUrl && logoUrl.publicUrl) globalSettings.logo = logoUrl.publicUrl + '?t=' + new Date().getTime();
+                }
+                if(!globalSettings.bg) {
+                    let { data: bgUrl } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl('global-bg.png');
+                    if(bgUrl && bgUrl.publicUrl) globalSettings.bg = bgUrl.publicUrl + '?t=' + new Date().getTime();
+                }
+
                 applyGlobalAssets();
             } catch(e) {
                 console.error("Error cargando datos de Supabase:", e);
@@ -451,8 +462,7 @@
             let fileName = type === 'logo' ? 'global-logo.png' : 'global-bg.png';
             showToast('Subiendo archivo a la nube...');
 
-            // Sube el archivo sobrescribiendo el anterior (upsert: true) para mantener exactamente 2 archivos vivos
-            let { data, error } = await supabaseClient.storage
+            let { error } = await supabaseClient.storage
                 .from(STORAGE_BUCKET)
                 .upload(fileName, file, { upsert: true });
 
@@ -461,7 +471,6 @@
                 return;
             }
 
-            // Obtener la URL pública permanente con un parámetro de tiempo para evitar caché
             let { data: publicUrlData } = supabaseClient.storage
                 .from(STORAGE_BUCKET)
                 .getPublicUrl(fileName);
@@ -482,7 +491,7 @@
             let fileName = `promo-${Date.now()}.png`;
             showToast('Subiendo fondo de campaña...');
 
-            let { data, error } = await supabaseClient.storage
+            let { error } = await supabaseClient.storage
                 .from(STORAGE_BUCKET)
                 .upload(fileName, file, { upsert: true });
 
