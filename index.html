@@ -8,19 +8,70 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --bg-overlay: rgba(0, 0, 0, 0.88); }
-        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 20px; background-size: cover; background-position: center; background-attachment: fixed; position: relative; }
+        :root { --bg-overlay: rgba(0, 0, 0, 0.68); }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #000; 
+            color: #fff; 
+            margin: 0; 
+            padding: 20px; 
+            min-height: 100vh;
+            position: relative; 
+            background-color: #000;
+        }
+
+        /* Contenedor principal de fondo con efecto borroso dinámico para escritorio */
+        #bgContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #bgBlurLayer {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.4);
+            transform: scale(1.1);
+        }
+
+        #bgMainLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
         body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-overlay); z-index: -1; pointer-events: none; }
+        
         .card { background: #050505; border: 1px solid #1a1a1a; padding: 18px; margin-bottom: 15px; border-radius: 6px; max-width: 500px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.9); position: relative; z-index: 1; }
         input, select, textarea, button { width: 100%; padding: 11px; margin: 8px 0; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; font-family: inherit; }
         button { background: #fff; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; border: 1px solid #fff; transition: all 0.2s ease; }
         button:hover { background: #000; color: #fff; border-color: #fff; }
         button:active { transform: scale(0.97); }
         button:disabled { background: #333; color: #777; border-color: #333; cursor: not-allowed; }
+        
+        /* Botones de acción MODO APEX */
+        .btn-action { background: #000; color: #fff; border: 1px solid #333; font-size: 10px; padding: 6px 10px; letter-spacing: 0.5px; }
+        .btn-action:hover { background: #1a1a1a; border-color: #fff; }
         .btn-danger { background: #000; color: #ff4444; border: 1px solid #550000; }
-        .btn-danger:hover { background: #220000; border-color: #ff4444; }
-        .btn-warning { background: #1a1a1a; color: #aaa; border: 1px solid #444; }
+        .btn-danger:hover { background: #220000; border-color: #ff4444; color: #fff; }
+        .btn-warning { background: #0a0a0a; color: #aaa; border: 1px solid #444; }
         .btn-warning:hover { background: #333; color: #fff; }
+        
         .hidden { display: none !important; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
         th, td { border: 1px solid #1a1a1a; padding: 8px; text-align: left; }
@@ -28,8 +79,12 @@
         .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-around; background: #080808; padding: 6px; border-radius: 6px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; gap: 4px; border: 1px solid #1a1a1a; }
         .nav-btn { background: transparent; color: #777; border: none; font-size: 10px; cursor: pointer; padding: 6px; flex: 1; min-width: 55px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
         .nav-btn.active { color: #fff; border-bottom: 2px solid #fff; font-weight: bold; }
+        
+        /* TARJETA 9:16 CENTRADA Y OPTIMIZADA */
         .coupon-box { position: relative; background-size: cover; background-position: center; border: 2px solid #fff; text-align: center; margin-top: 10px; border-radius: 12px; width: 280px; height: 500px; margin-left: auto; margin-right: auto; color: #fff; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
-        .coupon-overlay { background: rgba(0,0,0,0.85); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 25px 15px; box-sizing: border-box; text-shadow: 0 2px 5px rgba(0,0,0,0.9); }
+        .coupon-overlay { background: rgba(0,0,0,0.72); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 14px; box-sizing: border-box; text-shadow: 0 2px 5px rgba(0,0,0,0.9); text-align: center; }
+        .coupon-terms { margin: 4px 0; font-size: 10px; color: #f1f1f1; line-height: 1.25; max-height: 120px; overflow: hidden; }
+
         .suggestions-box { background: #0a0a0a; border: 1px solid #333; max-height: 150px; overflow-y: auto; text-align: left; margin-bottom: 10px; border-radius: 4px; }
         .suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #1a1a1a; font-size: 13px; transition: background 0.15s; }
         .suggestion-item:hover { background: #1a1a1a; }
@@ -46,25 +101,36 @@
         .badge-manual { background: #220022; color: #ff88ff; border-color: #550055; }
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 12px; letter-spacing: 1px; box-shadow: 0 5px 20px rgba(255,255,255,0.2); transition: transform 0.3s ease; z-index: 1000; text-transform: uppercase; }
         #toast.show { transform: translateX(-50%) translateY(0); }
+        
+        .filter-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .filter-group > div { flex: 1; min-width: 120px; }
     </style>
 </head>
 <body>
 
-    <div style="max-width: 500px; margin: 0 auto; text-align: center;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
-            <img id="globalAppLogo" src="" alt="" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%; border: 1px solid #fff; display: none;">
-            <h2 style="letter-spacing: 2px; font-size: 15px; margin: 0;">APEX // EMBUDO DE VENTAS</h2>
+    <!-- Contenedor dinámico de fondo con efecto difuminado lateral -->
+    <div id="bgContainer">
+        <div id="bgBlurLayer"></div>
+        <div id="bgMainLayer"></div>
+    </div>
+
+    <!-- CABECERA PRINCIPAL -->
+    <div style="max-width: 500px; margin: 0 auto; text-align: center; margin-bottom: 15px;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+            <img id="globalAppLogo" src="" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 1px solid #fff; display: none; margin-bottom: 4px;">
+            <h2 style="letter-spacing: 3px; font-size: 18px; margin: 0; font-weight: 900; text-transform: uppercase;">APEX BOXING</h2>
+            <span style="font-size: 11px; color: #888; letter-spacing: 1px; text-transform: uppercase;">Embudo de Ventas</span>
         </div>
-        <div id="currentUserBar" class="hidden" style="margin-bottom: 15px;">
-            <span id="lblRoleInfo" style="font-size: 12px; color: #777;"></span>
-            <button onclick="logout()" style="width: auto; padding: 3px 8px; margin-left: 8px; font-size: 10px;" class="btn-warning">Salir</button>
+        <div id="currentUserBar" class="hidden" style="margin-top: 15px;">
+            <span id="lblRoleInfo" style="font-size: 12px; color: #aaa;"></span>
+            <button onclick="logout()" style="width: auto; padding: 4px 10px; margin-left: 10px; font-size: 10px;" class="btn-action">Salir</button>
         </div>
     </div>
 
     <!-- VISTA LOGIN -->
     <section id="loginView" class="card">
         <h3 style="font-size: 13px; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;">Acceso al Sistema</h3>
-        <p style="font-size: 11px; color: #666;">Usa tu usuario registrado (Ej: <code>admin</code> o nombre de tienda).</p>
+        <p style="font-size: 11px; color: #aaa;">Usa tu usuario registrado (Ej: <code>admin</code> o nombre de tienda).</p>
         <input type="text" id="loginUser" placeholder="Usuario / Nombre">
         <button onclick="login()">Ingresar</button>
     </section>
@@ -84,7 +150,7 @@
         <div id="tabStores" class="card admin-tab">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Tiendas y Accesos</h3>
             <input type="text" id="storeName" placeholder="Nombre de la Tienda / Admin">
-            <label style="font-size:11px; color:#666;">Nivel de Membresía / Modo:</label>
+            <label style="font-size:11px; color:#aaa;">Nivel de Membresía / Modo:</label>
             <select id="storeTierSelect">
                 <option value="basico">Básico (Probabilidad Normal)</option>
                 <option value="pro">Pro (Prioridad x2)</option>
@@ -102,18 +168,18 @@
         <div id="tabPromos" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Gestión de Campañas por Tienda</h3>
             <input type="text" id="promoTitle" placeholder="Título de la Campaña (Ej: Combo Octubre)">
-            <label style="font-size:11px; color:#666;">Asignar a Tienda:</label>
+            <label style="font-size:11px; color:#aaa;">Asignar a Tienda:</label>
             <select id="promoStoreSelect"></select>
-            <label style="font-size:11px; color:#666;">Temporada (Mes/Año):</label>
+            <label style="font-size:11px; color:#aaa;">Temporada (Mes/Año):</label>
             <input type="text" id="promoSeason" placeholder="Ej: 2026-10">
             <div style="display:flex; gap:6px;">
                 <input type="date" id="promoStart">
                 <input type="date" id="promoEnd">
             </div>
-            <label style="font-size:11px; color:#666;">Términos y Condiciones:</label>
+            <label style="font-size:11px; color:#aaa;">Términos y Condiciones:</label>
             <textarea id="promoTerms" placeholder="Términos de la campaña..." rows="2" style="resize:vertical;"></textarea>
-            <label style="font-size:11px; color:#666;">Imagen de Fondo (Opcional):</label>
-            <input type="file" id="promoBgFile" accept="image/*" onchange="previewPromoBg(event)">
+            <label style="font-size:11px; color:#aaa;">Imagen de Fondo / GIF (Opcional):</label>
+            <input type="file" id="promoBgFile" accept="image/*" onchange="uploadPromoBgFile(event)">
             <button id="btnSavePromo" onclick="savePromo()">Guardar Campaña</button>
             <table>
                 <thead><tr><th>Campaña</th><th>Tienda</th><th>Temporada</th><th>Acciones</th></tr></thead>
@@ -125,66 +191,90 @@
         <div id="tabBonos" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Emitir Bono para el Usuario Final</h3>
             <input type="text" id="clientName" placeholder="Nombre del Cliente">
-            <input type="text" id="clientPhone" placeholder="Teléfono / PIN Único">
+            <input type="text" id="clientPhone" placeholder="Teléfono / PIN (Obligatorio 10 dígitos)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             
-            <label style="font-size:11px; color:#666;">Modo de Asignación:</label>
+            <label style="font-size:11px; color:#aaa;">Modo de Asignación:</label>
             <select id="assignModeSelect" onchange="toggleAssignMode()">
                 <option value="auto">Automático (Sorteo Ponderado por Tiendas)</option>
                 <option value="manual">Manual (Elegir Campaña/Tienda Específica)</option>
             </select>
             
             <div id="manualPromoContainer" class="hidden">
-                <label style="font-size:11px; color:#666;">Seleccionar Campaña Específica:</label>
+                <label style="font-size:11px; color:#aaa;">Seleccionar Campaña Específica:</label>
                 <select id="manualPromoSelect"></select>
             </div>
 
-            <button id="btnGenerateCoupon" onclick="generateCoupon()">Generar Tarjeta 9:16</button>
+            <button id="btnGenerateCoupon" onclick="generateCoupon()">Generar Bono</button>
             
             <div id="previewContainer" class="hidden" style="margin-top:15px; text-align:center;">
                 <div id="couponCard" class="coupon-box">
                     <div class="coupon-overlay">
-                        <div>
-                            <span style="background:#fff; color:#000; font-size:9px; padding:2px 6px; font-weight:bold;">OFICIAL APEX</span>
-                            <p style="margin:8px 0 2px 0; font-size:11px; color:#ccc; font-style:italic;">Felicidades. Reto Apex superado.</p>
-                            <p style="margin:0; font-size:11px; color:#888;">Has obtenido un:</p>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <img id="couponLogoImg" src="" alt="" style="width:36px; height:36px; object-fit:cover; border-radius:50%; border:1px solid #fff; display:none;">
+                            <h4 style="margin:0; font-size:18px; color:#fff; font-weight:900; letter-spacing:1px; line-height:1.1;">APEX BOXING</h4>
+                            <span style="font-size:10px; color:#ccc; letter-spacing:1px; text-transform:uppercase;">Escuela de Strikers</span>
                         </div>
                         <div>
-                            <h3 id="prevTitle" style="margin:5px 0; font-size:14px; color:#fff; text-transform:uppercase;"></h3>
-                            <h1 id="prevClient" style="margin:8px 0; font-size:32px; font-weight:900; color:#fff; line-height:1.1; word-break: break-word;"></h1>
-                            <p id="prevTerms" style="margin:8px 0; font-size:11px; color:#aaa; line-height:1.3;"></p>
+                            <p style="margin:4px 0 2px 0; font-size:10.5px; color:#ddd; line-height:1.2;">Felicidades, has superado el reto Apex y obtenido un premio de Apex Boxing:</p>
+                            <h3 id="prevTitle" style="margin:4px 0; font-size:14px; color:#fff; text-transform:uppercase; font-weight:900;"></h3>
+                            <h1 id="prevClient" style="margin:4px 0; font-size:26px; font-weight:900; color:#fff; line-height:1.1; word-break: break-word;"></h1>
                         </div>
-                        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top:8px;">
+                        <div>
+                            <p id="prevTerms" class="coupon-terms"></p>
+                        </div>
+                        <div style="border-top: 1px solid rgba(255,255,255,0.3); padding-top:6px;">
                             <p id="prevPhone" style="margin:2px 0; color:#fff; font-weight:bold; font-size:12px;"></p>
-                            <p id="prevExpiry" style="margin:2px 0; font-size:9px; color:#777;"></p>
-                            <p style="margin:4px 0 0 0; font-size:7px; color:#aaa;">Al redimir autorizas el uso de tus datos para comunicaciones de la tienda.</p>
+                            <p id="prevExpiry" style="margin:2px 0; font-size:9px; color:#ddd;"></p>
                         </div>
                     </div>
                 </div>
-                <button onclick="downloadCard()" style="margin-top:10px;">📥 Descargar Imagen 9:16</button>
+                <button onclick="downloadCard()" style="margin-top:10px;">Descargar Bono</button>
             </div>
         </div>
 
         <!-- 4. LISTADO GENERAL -->
         <div id="tabList" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Listado de Bonos Emitidos</h3>
-            <button onclick="resetAdminHistory()" class="btn-warning" style="margin-bottom: 10px;">🔄 Resetear Historial Admin</button>
-            <table>
-                <thead><tr><th>Cliente</th><th>PIN</th><th>Campaña</th><th>Estado</th><th>Acciones</th></tr></thead>
-                <tbody id="adminBonosTable"></tbody>
-            </table>
+            
+            <div class="filter-group">
+                <div>
+                    <label style="font-size:10px; color:#777;">Campaña:</label>
+                    <select id="listFilterPromo" onchange="renderAdminTable()" style="padding: 6px; margin: 4px 0;"></select>
+                </div>
+                <div>
+                    <label style="font-size:10px; color:#777;">Desde:</label>
+                    <input type="date" id="listFilterStart" onchange="renderAdminTable()" style="padding: 6px; margin: 4px 0;">
+                </div>
+                <div>
+                    <label style="font-size:10px; color:#777;">Hasta:</label>
+                    <input type="date" id="listFilterEnd" onchange="renderAdminTable()" style="padding: 6px; margin: 4px 0;">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <button onclick="exportAdminListCSV()" style="flex: 1;">📥 Descargar Listado</button>
+                <button onclick="resetAdminHistory()" class="btn-warning" style="flex: 1;">🔄 Resetear Todo</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead><tr><th>Cliente</th><th>PIN</th><th>Campaña</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr></thead>
+                    <tbody id="adminBonosTable"></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- 5. EMBUDO ADMIN -->
         <div id="tabFunnel" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Embudo y Filtros Dinámicos</h3>
-            <label style="font-size:11px; color:#666;">Filtrar por Campaña:</label>
+            <label style="font-size:11px; color:#aaa;">Filtrar por Campaña:</label>
             <select id="filterPromo" onchange="renderFunnel()"><option value="all">Todas las Campañas</option></select>
             
             <div class="funnel-grid" style="margin-top:12px;">
-                <div class="funnel-card"><small style="font-size:10px; color:#666;">BONOS EMITIDOS</small><span id="funnelTotal">0</span></div>
-                <div class="funnel-card"><small style="font-size:10px; color:#666;">BONOS REDIMIDOS</small><span id="funnelRedeemed">0</span></div>
-                <div class="funnel-card"><small style="font-size:10px; color:#666;">BONOS VENCIDOS</small><span id="funnelExpired">0</span></div>
-                <div class="funnel-card"><small style="font-size:10px; color:#666;">EFICIENCIA / CONVERSIÓN</small><span id="funnelRate">0%</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#aaa;">BONOS EMITIDOS</small><span id="funnelTotal">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#aaa;">BONOS REDIMIDOS</small><span id="funnelRedeemed">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#aaa;">BONOS VENCIDOS</small><span id="funnelExpired">0</span></div>
+                <div class="funnel-card"><small style="font-size:10px; color:#aaa;">EFICIENCIA / CONVERSIÓN</small><span id="funnelRate">0%</span></div>
             </div>
 
             <h4 style="font-size: 12px; color:#aaa; margin:15px 0 5px 0;">Rendimiento por Categorías de Membresía</h4>
@@ -196,12 +286,11 @@
 
         <!-- 6. AJUSTES GLOBALES -->
         <div id="tabSettings" class="card admin-tab hidden">
-            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Ajustes Globales (Logotipo y Fondo / GIF)</h3>
-            <label style="font-size:11px; color:#666;">Logotipo Global:</label>
-            <input type="file" id="appLogoFile" accept="image/*" onchange="uploadGlobalAsset(event, 'logo')">
-            <label style="font-size:11px; color:#666;">Fondo o GIF de la Aplicación:</label>
-            <input type="file" id="appBgFile" accept="image/*" onchange="uploadGlobalAsset(event, 'bg')">
-            <input type="text" id="appBgUrl" placeholder="O pega enlace directo a imagen / GIF" onchange="saveBgUrl(this.value)" style="margin-top:5px;">
+            <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Ajustes Globales (Almacenamiento Directo)</h3>
+            <label style="font-size:11px; color:#aaa;">Logotipo Global (Sube archivo):</label>
+            <input type="file" id="appLogoFile" accept="image/*" onchange="uploadGlobalStorage(event, 'logo')">
+            <label style="font-size:11px; color:#aaa; margin-top:10px; display:block;">Fondo / GIF de la Aplicación (Sube archivo):</label>
+            <input type="file" id="appBgFile" accept="image/*" onchange="uploadGlobalStorage(event, 'bg')">
         </div>
     </section>
 
@@ -218,14 +307,14 @@
         <div id="storeRedeem" class="store-subtab">
             <div class="card" id="redeemCardBox">
                 <h3 id="estTitleHeader" style="font-size: 14px; margin-bottom: 5px;">Panel de Tienda</h3>
-                <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Busca al cliente activo o haz clic directo en la lista.</p>
+                <p style="font-size: 11px; color: #aaa; margin-bottom: 10px;">Busca al cliente activo o haz clic directo en la lista.</p>
                 
                 <input type="text" id="searchClientInput" placeholder="Escribe el nombre del cliente..." oninput="filterClientSuggestions()">
                 <div id="clientSuggestions" class="suggestions-box hidden"></div>
 
                 <div id="selectedClientBox" class="hidden" style="background:#0a0a0a; padding:10px; margin-top:10px; border-radius:4px; border: 1px solid #1a1a1a;">
                     <p style="margin:0; font-size:13px; color:#fff;" id="lblSelectedInfo"></p>
-                    <input type="text" id="confirmPhoneInput" placeholder="Confirma el PIN / Teléfono">
+                    <input type="text" id="confirmPhoneInput" placeholder="Confirma el PIN / Teléfono" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     <button id="btnRedeemAction" onclick="redeemCouponSecure()" style="margin-top:8px;">Validar y Redimir</button>
                 </div>
             </div>
@@ -243,10 +332,10 @@
         <div id="storeLeads" class="store-subtab hidden">
             <div class="card">
                 <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Base de Datos de Leads (Redimidos)</h3>
-                <label style="font-size:11px; color:#666;">Temporada / Campaña:</label>
+                <label style="font-size:11px; color:#aaa;">Temporada / Campaña:</label>
                 <select id="leadSeasonFilter" onchange="renderStoreLeads()"><option value="all">Todas las temporadas</option></select>
                 <input type="text" id="leadSearchInput" placeholder="Buscar por nombre o teléfono..." oninput="renderStoreLeads()">
-                <button onclick="exportLeadsCSV()" style="background:#003311; color:#00ff88; border-color:#006622; margin-top:10px;">📥 Descargar Leads (CSV)</button>
+                <button onclick="exportStoreLeadsCSV()" style="margin-top:10px;">📥 Descargar Leads (CSV)</button>
                 <button onclick="resetStoreHistory()" class="btn-warning" style="margin-top: 5px;">🔄 Resetear Mi Historial</button>
                 <table style="margin-top: 10px;">
                     <thead><tr><th>Cliente</th><th>Teléfono</th><th>Campaña</th><th>Fecha Redención</th></tr></thead>
@@ -259,23 +348,23 @@
         <div id="storeFunnel" class="store-subtab hidden">
             <div class="card">
                 <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Filtros de Embudo</h3>
-                <label style="font-size:11px; color:#666;">Campaña:</label>
+                <label style="font-size:11px; color:#aaa;">Campaña:</label>
                 <select id="storeFilterPromo" onchange="renderStoreFunnel()"><option value="all">Todas las campañas</option></select>
             </div>
 
             <div class="card" style="padding: 10px;">
                 <h4 style="font-size: 11px; color:#aaa; margin:0 0 8px 0;">Mis Métricas Locales</h4>
                 <div class="funnel-grid">
-                    <div class="funnel-card"><small style="font-size:10px; color:#666;">ASIGNADOS</small><span id="storeMetricAssigned">0</span></div>
-                    <div class="funnel-card"><small style="font-size:10px; color:#666;">REDIMIDOS</small><span id="storeMetricRedeemed">0</span></div>
-                    <div class="funnel-card"><small style="font-size:10px; color:#666;">VENCIDOS</small><span id="storeMetricExpired">0</span></div>
-                    <div class="funnel-card"><small style="font-size:10px; color:#666;">EFICIENCIA</small><span id="storeMetricRate">0%</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#aaa;">ASIGNADOS</small><span id="storeMetricAssigned">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#aaa;">REDIMIDOS</small><span id="storeMetricRedeemed">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#aaa;">VENCIDOS</small><span id="storeMetricExpired">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#aaa;">EFICIENCIA</small><span id="storeMetricRate">0%</span></div>
                 </div>
 
                 <h4 style="font-size: 11px; color:#aaa; margin:15px 0 8px 0;">Métricas Globales de la Red</h4>
                 <div class="funnel-grid">
-                    <div class="funnel-card"><small style="font-size:10px; color:#666;">TOTAL CAMPAÑA</small><span id="globalMetricTotal">0</span></div>
-                    <div class="funnel-card"><small style="font-size:10px; color:#666;">REDIMIDOS RED</small><span id="globalMetricRedeemed">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#aaa;">TOTAL CAMPAÑA</small><span id="globalMetricTotal">0</span></div>
+                    <div class="funnel-card"><small style="font-size:10px; color:#aaa;">REDIMIDOS RED</small><span id="globalMetricRedeemed">0</span></div>
                 </div>
             </div>
         </div>
@@ -294,9 +383,9 @@
     <div id="toast">Notificación</div>
 
     <script>
-        // CREDENCIALES CONFIGURADAS DIRECTAMENTE
         const SUPABASE_URL = "https://fprvbvucmtdpxdihuvrw.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_xAMs8LpCwyMyoql3ohoJUQ_BIRhBQoD";
+        const STORAGE_BUCKET = "apex-global";
         
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -343,30 +432,71 @@
                 logoEl.style.display = 'none';
             }
 
+            let blurLayer = document.getElementById('bgBlurLayer');
+            let mainLayer = document.getElementById('bgMainLayer');
+
             if(globalSettings.bg) {
-                document.body.style.backgroundImage = `url('${globalSettings.bg}')`;
+                blurLayer.style.backgroundImage = `url('${globalSettings.bg}')`;
+                mainLayer.style.backgroundImage = `url('${globalSettings.bg}')`;
             } else {
-                document.body.style.backgroundImage = 'none';
+                blurLayer.style.backgroundImage = 'none';
+                mainLayer.style.backgroundImage = 'none';
             }
         }
 
-        async function uploadGlobalAsset(event, type) {
+        async function uploadGlobalStorage(event, type) {
             let file = event.target.files[0];
-            if(file) {
-                let reader = new FileReader();
-                reader.onload = async function(e) {
-                    if(type === 'logo') globalSettings.logo = e.target.result;
-                    if(type === 'bg') globalSettings.bg = e.target.result;
-                    await saveGlobalSettingsToSupabase();
-                };
-                reader.readAsDataURL(file);
+            if(!file) return;
+
+            let fileName = type === 'logo' ? 'global-logo.png' : 'global-bg.png';
+            showToast('Subiendo archivo a la nube...');
+
+            // Sube el archivo sobrescribiendo el anterior (upsert: true) para mantener exactamente 2 archivos vivos
+            let { data, error } = await supabaseClient.storage
+                .from(STORAGE_BUCKET)
+                .upload(fileName, file, { upsert: true });
+
+            if(error) {
+                alert('Error al subir archivo al Storage: ' + error.message);
+                return;
             }
+
+            // Obtener la URL pública permanente con un parámetro de tiempo para evitar caché
+            let { data: publicUrlData } = supabaseClient.storage
+                .from(STORAGE_BUCKET)
+                .getPublicUrl(fileName);
+
+            let permanentUrl = publicUrlData.publicUrl + '?t=' + new Date().getTime();
+
+            if(type === 'logo') globalSettings.logo = permanentUrl;
+            if(type === 'bg') globalSettings.bg = permanentUrl;
+
+            await saveGlobalSettingsToSupabase();
+            showToast('¡Archivo actualizado con éxito!');
         }
 
-        async function saveBgUrl(url) {
-            if(!url) return;
-            globalSettings.bg = url.trim();
-            await saveGlobalSettingsToSupabase();
+        async function uploadPromoBgFile(event) {
+            let file = event.target.files[0];
+            if(!file) return;
+
+            let fileName = `promo-${Date.now()}.png`;
+            showToast('Subiendo fondo de campaña...');
+
+            let { data, error } = await supabaseClient.storage
+                .from(STORAGE_BUCKET)
+                .upload(fileName, file, { upsert: true });
+
+            if(error) {
+                alert('Error al subir imagen: ' + error.message);
+                return;
+            }
+
+            let { data: publicUrlData } = supabaseClient.storage
+                .from(STORAGE_BUCKET)
+                .getPublicUrl(fileName);
+
+            tempPromoBgData = publicUrlData.publicUrl;
+            showToast('Fondo de campaña cargado');
         }
 
         async function saveGlobalSettingsToSupabase() {
@@ -378,7 +508,6 @@
                 await supabaseClient.from('stores').insert([payload]);
             }
             await loadData();
-            showToast('Ajustes globales actualizados');
         }
 
         async function login() {
@@ -403,7 +532,7 @@
         function startSession() {
             document.getElementById('loginView').classList.add('hidden');
             document.getElementById('currentUserBar').classList.remove('hidden');
-            document.getElementById('lblRoleInfo').innerText = `Conectado: ${currentUser.name}`;
+            document.getElementById('lblRoleInfo').innerText = `Admin: ${currentUser.name}`;
 
             if(currentUser.role === 'admin') {
                 document.getElementById('adminDashboard').classList.remove('hidden');
@@ -500,12 +629,19 @@
         async function editStore(id) {
             let store = DB.stores.find(s => s.id === id);
             if(!store) return;
-            let newName = prompt("Editar nombre de tienda:", store.name);
+            let newName = prompt("Editar nombre de tienda/usuario:", store.name);
             if(newName === null) return;
-            await supabaseClient.from('stores').update({ name: newName.trim() }).eq('id', id);
+            let newPass = prompt("Editar contraseña:", store.password || "");
+            if(newPass === null) return;
+
+            await supabaseClient.from('stores').update({ 
+                name: newName.trim(),
+                password: newPass.trim()
+            }).eq('id', id);
+
             await loadData();
             renderAdminEverything();
-            showToast('Tienda actualizada');
+            showToast('Datos actualizados');
         }
 
         async function toggleSuspendStore(id) {
@@ -532,28 +668,19 @@
             let validStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global');
             document.getElementById('adminStoresTable').innerHTML = validStores.map(s => `
                 <tr>
-                    <td><b>${s.name}</b></td>
+                    <td><b>${s.name}</b><br><small style="color:#aaa;">Pass: ${s.password || 'Sin clave'}</small></td>
                     <td><span class="badge badge-${s.tier || 'basico'}">${(s.tier || 'basico').toUpperCase()}</span></td>
                     <td>${s.status === 'suspended' ? '<span style="color:#ff4444">Suspendida</span>' : '<span style="color:#00ff88">Activa</span>'}</td>
                     <td>
-                        <button onclick="editStore('${s.id}')" style="padding:4px 6px; margin-right:4px;">✏️</button>
-                        <button onclick="toggleSuspendStore('${s.id}')" style="padding:4px 6px; margin-right:4px;" class="${s.status === 'suspended' ? '' : 'btn-warning'}">${s.status === 'suspended' ? 'Activar' : 'Suspender'}</button>
-                        ${s.name.trim().toLowerCase() !== 'admin' ? `<button onclick="deleteStore('${s.id}')" style="padding:4px 6px;" class="btn-danger">ELIMINAR</button>` : ''}
+                        <button onclick="editStore('${s.id}')" class="btn-action" style="margin-right:2px;">Editar</button>
+                        <button onclick="toggleSuspendStore('${s.id}')" class="btn-action ${s.status === 'suspended' ? '' : 'btn-warning'}" style="margin-right:2px;">${s.status === 'suspended' ? 'Activar' : 'Suspender'}</button>
+                        ${s.name.trim().toLowerCase() !== 'admin' ? `<button onclick="deleteStore('${s.id}')" class="btn-action btn-danger">Eliminar</button>` : ''}
                     </td>
                 </tr>
             `).join('') || `<tr><td colspan="4">Sin tiendas.</td></tr>`;
         }
 
         // --- PROMOS CRUD ---
-        function previewPromoBg(event) {
-            let file = event.target.files[0];
-            if(file) {
-                let reader = new FileReader();
-                reader.onload = function(e) { tempPromoBgData = e.target.result; showToast('Imagen cargada'); };
-                reader.readAsDataURL(file);
-            }
-        }
-
         async function savePromo() {
             let btn = document.getElementById('btnSavePromo');
             let title = document.getElementById('promoTitle').value.trim();
@@ -575,19 +702,46 @@
                 bg_image: tempPromoBgData || ''
             };
 
-            await supabaseClient.from('promos').insert([promoObj]);
+            if (btn.dataset.editId) {
+                await supabaseClient.from('promos').update(promoObj).eq('id', btn.dataset.editId);
+                delete btn.dataset.editId;
+                showToast('Campaña actualizada');
+            } else {
+                await supabaseClient.from('promos').insert([promoObj]);
+                showToast('Campaña guardada');
+            }
+
             document.getElementById('promoTitle').value = '';
             document.getElementById('promoSeason').value = '';
             document.getElementById('promoStart').value = '';
             document.getElementById('promoEnd').value = '';
             document.getElementById('promoTerms').value = '';
+            document.getElementById('promoBgFile').value = '';
             tempPromoBgData = '';
             
             await loadData();
             renderAdminEverything();
             btn.disabled = false;
             btn.innerText = "Guardar Campaña";
-            showToast('Campaña guardada');
+        }
+
+        async function editPromo(id) {
+            let promo = DB.promos.find(p => p.id === id);
+            if(!promo) return;
+            
+            document.getElementById('promoTitle').value = promo.title;
+            document.getElementById('promoStoreSelect').value = promo.store_id;
+            document.getElementById('promoSeason').value = promo.season || '';
+            document.getElementById('promoStart').value = promo.start_date || '';
+            document.getElementById('promoEnd').value = promo.end_date || '';
+            document.getElementById('promoTerms').value = promo.terms || '';
+            tempPromoBgData = promo.bg_image || '';
+            
+            let btn = document.getElementById('btnSavePromo');
+            btn.innerText = "Actualizar Campaña";
+            btn.dataset.editId = promo.id;
+            
+            showToast('Modifica los datos y presiona Actualizar');
         }
 
         async function deletePromo(id) {
@@ -606,7 +760,10 @@
                         <td>${p.title}</td>
                         <td><b>${st ? st.name : 'N/A'}</b></td>
                         <td><code>${p.season || 'N/A'}</code></td>
-                        <td><button onclick="deletePromo('${p.id}')" style="padding:4px 8px;" class="btn-danger">ELIMINAR</button></td>
+                        <td>
+                            <button onclick="editPromo('${p.id}')" class="btn-action" style="margin-right:2px;">Editar</button>
+                            <button onclick="deletePromo('${p.id}')" class="btn-action btn-danger">Eliminar</button>
+                        </td>
                     </tr>
                 `;
             }).join('') || `<tr><td colspan="4">Sin campañas.</td></tr>`;
@@ -619,6 +776,8 @@
                 let st = DB.stores.find(s => s.id === p.store_id);
                 return `<option value="${p.id}">${p.title} - [Tienda: ${st ? st.name : 'N/A'}]</option>`;
             }).join('');
+            
+            document.getElementById('listFilterPromo').innerHTML = '<option value="all">Todas las Campañas</option>' + DB.promos.map(p => `<option value="${p.id}">${p.title} (${p.season})</option>`).join('');
         }
 
         function toggleAssignMode() {
@@ -626,7 +785,6 @@
             document.getElementById('manualPromoContainer').classList.toggle('hidden', mode !== 'manual');
         }
 
-        // --- ALGORITHM: WEIGHTED RANDOM SELECTION ---
         function selectWeightedPromo() {
             let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'admin' && s.name.trim().toLowerCase() !== 'settings_global' && s.status !== 'suspended' && s.tier !== 'manual');
             
@@ -662,6 +820,7 @@
             let assignMode = document.getElementById('assignModeSelect').value;
 
             if(!clientName || !clientPhone) { showToast('Completa los campos'); return; }
+            if(clientPhone.length !== 10) { showToast('El teléfono debe tener exactamente 10 dígitos'); return; }
 
             let targetPromo = null;
             if(assignMode === 'manual') {
@@ -692,7 +851,7 @@
             if(error) {
                 alert('⚠️ Este número de teléfono ya tiene un bono asignado en esta campaña.');
                 btn.disabled = false;
-                btn.innerText = "Generar Tarjeta 9:16";
+                btn.innerText = "Generar Bono";
                 return;
             }
 
@@ -706,15 +865,33 @@
                 document.getElementById('couponCard').style.backgroundImage = 'none';
             }
 
+            let logoImgEl = document.getElementById('couponLogoImg');
+            if(globalSettings.logo) {
+                logoImgEl.src = globalSettings.logo;
+                logoImgEl.style.display = 'block';
+            } else {
+                logoImgEl.style.display = 'none';
+            }
+
             document.getElementById('prevTitle').innerText = targetPromo.title;
             document.getElementById('prevClient').innerText = clientName;
-            document.getElementById('prevTerms').innerText = targetPromo.terms;
+            
+            let termsEl = document.getElementById('prevTerms');
+            termsEl.innerText = targetPromo.terms;
+            if(targetPromo.terms.length > 140) {
+                termsEl.style.fontSize = '8.5px';
+            } else if(targetPromo.terms.length > 90) {
+                termsEl.style.fontSize = '9.5px';
+            } else {
+                termsEl.style.fontSize = '10.5px';
+            }
+
             document.getElementById('prevPhone').innerText = `PIN / TEL: ${clientPhone}`;
             document.getElementById('prevExpiry').innerText = `Expira: ${targetPromo.end_date || 'N/A'}`;
             document.getElementById('previewContainer').classList.remove('hidden');
             
             btn.disabled = false;
-            btn.innerText = "Generar Tarjeta 9:16";
+            btn.innerText = "Generar Bono";
             showToast('Bono generado con éxito');
         }
 
@@ -744,17 +921,60 @@
             showToast('Historial reseteado');
         }
 
+        function getFilteredAdminList() {
+            let promoId = document.getElementById('listFilterPromo').value;
+            let startDate = document.getElementById('listFilterStart').value;
+            let endDate = document.getElementById('listFilterEnd').value;
+            
+            let list = DB.users.filter(u => u.status !== 'eliminado');
+            
+            if(promoId !== 'all') {
+                list = list.filter(u => u.promo_id === promoId);
+            }
+            if(startDate) {
+                let sDate = new Date(startDate).setHours(0,0,0,0);
+                list = list.filter(u => new Date(u.created_at).setHours(0,0,0,0) >= sDate);
+            }
+            if(endDate) {
+                let eDate = new Date(endDate).setHours(23,59,59,999);
+                list = list.filter(u => new Date(u.created_at).setHours(0,0,0,0) <= eDate);
+            }
+            
+            return list.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        }
+
         function renderAdminTable() {
-            let valid = DB.users.filter(u => u.status !== 'eliminado');
-            document.getElementById('adminBonosTable').innerHTML = valid.map(u => `
+            let filteredList = getFilteredAdminList();
+            
+            document.getElementById('adminBonosTable').innerHTML = filteredList.map(u => `
                 <tr>
                     <td>${u.beneficiary}</td>
                     <td><code>${u.phone}</code></td>
                     <td>${u.promo_title}</td>
                     <td><b>${u.status.toUpperCase()}</b></td>
-                    <td><button onclick="deleteCoupon('${u.id}')" style="padding:4px 6px;" class="btn-danger">ELIMINAR</button></td>
+                    <td><small>${new Date(u.created_at).toLocaleDateString()}</small></td>
+                    <td><button onclick="deleteCoupon('${u.id}')" class="btn-action btn-danger">Eliminar</button></td>
                 </tr>
-            `).join('') || `<tr><td colspan="5">Sin bonos.</td></tr>`;
+            `).join('') || `<tr><td colspan="6">Sin resultados.</td></tr>`;
+        }
+
+        function exportAdminListCSV() {
+            let filteredList = getFilteredAdminList();
+            if(filteredList.length === 0) { showToast('No hay datos para exportar'); return; }
+
+            let csvContent = "data:text/csv;charset=utf-8,Cliente;Telefono;Campana;Estado;FechaCreacion\n";
+            filteredList.forEach(u => {
+                let row = `"${u.beneficiary}","${u.phone}","${u.promo_title}","${u.status}","${new Date(u.created_at).toLocaleString()}"`;
+                csvContent += row + "\r\n";
+            });
+
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Listado_General_Apex.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // --- ADMIN FUNNEL ---
@@ -912,7 +1132,7 @@
             `).join('') || `<tr><td colspan="4">Sin leads registrados.</td></tr>`;
         }
 
-        function exportLeadsCSV() {
+        function exportStoreLeadsCSV() {
             if(currentUser.status === 'suspended') { alert('Tienda suspendida.'); return; }
             let redeemedList = DB.users.filter(u => u.store_id === currentUser.id && u.status === 'redimido');
             if(redeemedList.length === 0) { showToast('No hay leads para exportar'); return; }
