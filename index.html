@@ -1208,4 +1208,510 @@
                 phone: clientPhone,
                 expiry: targetPromo.end_date || 'Sin caducidad',
                 terms: targetPromo.terms || 'Válido en establecimientos participantes.',
-                promo_id: target
+                promo_id: targetPromo.id,
+                promo_title: targetPromo.title,
+                season: targetPromo.season || '2026-10',
+                store_id: targetPromo.store_id,
+                created_by: currentUser.name,
+                status: 'activo'
+            };
+
+            let { error } = await supabaseClient.from('coupons').insert([userObj]);
+            if(error) {
+                alert('Error al guardar en base de datos: ' + error.message);
+                btn.disabled = false;
+                btn.innerText = "Generar Tarjeta 9:16";
+                return;
+            }
+
+            lastCreatedCollabUser = userObj;
+            await loadData();
+            renderCollabEmitSelects();
+
+            if(targetPromo.bg_image) {
+                document.getElementById('collabCouponCard').style.backgroundImage = `url('${targetPromo.bg_image}')`;
+            } else {
+                document.getElementById('collabCouponCard').style.backgroundImage = 'none';
+            }
+
+            document.getElementById('collabPrevTitle').innerText = targetPromo.title;
+            document.getElementById('collabPrevClient').innerText = clientName;
+            document.getElementById('collabPrevTerms').innerText = targetPromo.terms;
+            document.getElementById('collabPrevPhone').innerText = `PIN / TEL: ${clientPhone}`;
+            document.getElementById('collabPrevExpiry').innerText = `Expira: ${targetPromo.end_date || 'N/A'}`;
+            document.getElementById('collabPreviewContainer').classList.remove('hidden');
+            
+            btn.disabled = false;
+            btn.innerText = "Generar Tarjeta 9:16";
+            showToast('Bono generado con éxito');
+        }
+
+        function downloadCollabCard() {
+            let card = document.getElementById('collabCouponCard');
+            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `Bono_Apex_${lastCreatedCollabUser ? lastCreatedCollabUser.beneficiary : 'Card'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function selectWeightedPromo() {
+            let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'admin' && s.name.trim().toLowerCase() !== 'settings_global' && s.status !== 'suspended' && s.tier !== 'manual' && s.tier !== 'colaborador');
+            
+            if(activeStores.length === 0) {
+                let fallbackStores = DB.stores.filter(s => s.status !== 'suspended' && s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin');
+                if(fallbackStores.length === 0) return null;
+                let storePromos = DB.promos.filter(p => p.store_id === fallbackStores[0].id && p.status !== 'suspended');
+                let validPromos = storePromos.filter(p => p.stock_limit === null || p.stock_limit === undefined || getDynamicAvailableStock(p.id) > 0);
+                return validPromos.length > 0 ? validPromos[0] : null;
+            }
+
+            let pool = [];
+            activeStores.forEach(s => {
+                let weight = 1;
+                if(s.tier === 'pro') weight = 4;
+                if(s.tier === 'elite') weight = 8;
+                
+                let sPromos = DB.promos.filter(p => p.store_id === s.id && p.status !== 'suspended');
+                sPromos.forEach(p => {
+                    if(p.stock_limit === null || p.stock_limit === undefined || getDynamicAvailableStock(p.id) > 0) {
+                        for(let i = 0; i < weight; i++) { pool.push(p); }
+                    }
+                });
+            });
+
+            let activePromos = DB.promos.filter(p => p.status !== 'suspended' && (p.stock_limit === null || p.stock_limit === undefined || getDynamicAvailableStock(p.id) > 0));
+            if(pool.length === 0 && activePromos.length > 0) return activePromos[0];
+            if(pool.length === 0) return null;
+
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        async function generateCoupon() {
+            let btn = document.getElementById('btnGenerateCoupon');
+            let clientName = document.getElementById('clientName').value.trim();
+            let clientPhone = document.getElementById('clientPhone').value.trim();
+            let assignMode = document.getElementById('assignModeSelect').value;
+
+            if(!clientName || !clientPhone) { showToast('Completa los campos'); return; }
+
+            let targetPromo = null;
+            if(assignMode === 'manual') {
+                let promoId = document.getElementById('manualPromoSelect').value;
+                targetPromo = DB.promos.find(p => p.id === promoId);
+            } else {
+                targetPromo = selectWeightedPromo();
+            }
+
+            if(!targetPromo || targetPromo.status === 'suspended') { showToast('No hay campañas activas o con stock disponibles'); return; }
+
+            if(hasActiveCouponForPromo(clientPhone, targetPromo.id)) {
+                alert(`⚠️ Este cliente ya tiene un bono ACTIVO en la campaña "${targetPromo.title}". Solo podrá recibir uno nuevo cuando este expire o sea redimido.`);
+                return;
+            }
+
+            if(targetPromo.stock_limit !== null && targetPromo.stock_limit !== undefined) {
+                let avail = getDynamicAvailableStock(targetPromo.id);
+                if(avail <= 0) {
+                    alert(`⚠️ La campaña "${targetPromo.title}" ha agotado su stock disponible de cupos.`);
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Generando...";
+
+            let userObj = {
+                beneficiary: clientName,
+                phone: clientPhone,
+                expiry: targetPromo.end_date || 'Sin caducidad',
+                terms: targetPromo.terms || 'Válido en establecimientos participantes.',
+                promo_id: targetPromo.id,
+                promo_title: targetPromo.title,
+                season: targetPromo.season || '2026-10',
+                store_id: targetPromo.store_id,
+                created_by: currentUser.name,
+                status: 'activo'
+            };
+
+            let { error } = await supabaseClient.from('coupons').insert([userObj]);
+            if(error) {
+                alert('Error al guardar en base de datos: ' + error.message);
+                btn.disabled = false;
+                btn.innerText = "Generar Tarjeta 9:16";
+                return;
+            }
+
+            lastCreatedUser = userObj;
+            await loadData();
+            renderAdminTable();
+            renderAdminSelects();
+
+            if(targetPromo.bg_image) {
+                document.getElementById('couponCard').style.backgroundImage = `url('${targetPromo.bg_image}')`;
+            } else {
+                document.getElementById('couponCard').style.backgroundImage = 'none';
+            }
+
+            document.getElementById('prevTitle').innerText = targetPromo.title;
+            document.getElementById('prevClient').innerText = clientName;
+            document.getElementById('prevTerms').innerText = targetPromo.terms;
+            document.getElementById('prevPhone').innerText = `PIN / TEL: ${clientPhone}`;
+            document.getElementById('prevExpiry').innerText = `Expira: ${targetPromo.end_date || 'N/A'}`;
+            document.getElementById('previewContainer').classList.remove('hidden');
+            
+            btn.disabled = false;
+            btn.innerText = "Generar Tarjeta 9:16";
+            showToast('Bono generado con éxito');
+        }
+
+        function downloadCard() {
+            let card = document.getElementById('couponCard');
+            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
+                let link = document.createElement('a');
+                link.download = `Bono_Apex_${lastCreatedUser ? lastCreatedUser.beneficiary : 'Card'}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        async function deleteCoupon(id) {
+            if(!confirm('¿Eliminar este bono?')) return;
+            await supabaseClient.from('coupons').delete().eq('id', id);
+            await loadData();
+            renderAdminTable();
+            showToast('Bono eliminado');
+        }
+
+        async function resetAdminHistory() {
+            if(!confirm('⚠️ ¿Resetear el historial general de bonos?')) return;
+            await supabaseClient.from('coupons').delete().neq('status', '9999');
+            await loadData();
+            renderAdminEverything();
+            showToast('Historial reseteado');
+        }
+
+        function exportAdminListPDF() {
+            let element = document.getElementById('pdfExportArea');
+            let opt = {
+                margin:       10,
+                filename:     'Reporte_Bonos_Apex.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).save();
+            showToast('Generando PDF...');
+        }
+
+        function renderAdminTable() {
+            let valid = DB.users.filter(u => u.status !== 'eliminado');
+            document.getElementById('adminBonosTable').innerHTML = valid.map(u => `
+                <tr>
+                    <td><b>${u.beneficiary}</b><br><code>${u.phone}</code></td>
+                    <td>${u.promo_title}</td>
+                    <td>${u.expiry || 'N/A'}</td>
+                    <td><b>${u.status.toUpperCase()}</b></td>
+                    <td><button onclick="deleteCoupon('${u.id}')" class="btn-action-danger">ELIMINAR</button></td>
+                </tr>
+            `).join('') || `<tr><td colspan="5">Sin bonos.</td></tr>`;
+        }
+
+        function renderCollabMetricsFilters() {
+            let collabs = DB.stores.filter(s => s.tier === 'colaborador' && s.status !== 'suspended');
+            document.getElementById('collabMetricUser').innerHTML = '<option value="all">Todos los Colaboradores</option>' + collabs.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            document.getElementById('collabMetricPromo').innerHTML = '<option value="all">Todas las Campañas</option>' + DB.promos.map(p => `<option value="${p.id}">${p.title} (${p.season})</option>`).join('');
+            renderCollabMetrics();
+        }
+
+        function renderCollabMetrics() {
+            let selUser = document.getElementById('collabMetricUser').value;
+            let selPromo = document.getElementById('collabMetricPromo').value;
+            let startDate = document.getElementById('collabMetricStart').value;
+            let endDate = document.getElementById('collabMetricEnd').value;
+
+            let list = DB.users.filter(u => u.status !== 'eliminado' && u.created_by);
+            
+            if(selUser !== 'all') list = list.filter(u => u.created_by === selUser);
+            if(selPromo !== 'all') list = list.filter(u => u.promo_id === selPromo);
+            if(startDate) {
+                let startD = new Date(startDate);
+                list = list.filter(u => new Date(u.created_at || Date.now()) >= startD);
+            }
+            if(endDate) {
+                let endD = new Date(endDate);
+                endD.setHours(23, 59, 59, 999);
+                list = list.filter(u => new Date(u.created_at || Date.now()) <= endD);
+            }
+
+            let totalGen = list.length;
+            let totalRed = list.filter(u => u.status === 'redimido').length;
+
+            document.getElementById('collabMetricGenerated').innerText = totalGen;
+            document.getElementById('collabMetricRedeemed').innerText = totalRed;
+
+            let collabMap = {};
+            list.forEach(u => {
+                let creator = u.created_by || 'Sistema';
+                if(!collabMap[creator]) collabMap[creator] = { gen: 0, red: 0 };
+                collabMap[creator].gen++;
+                if(u.status === 'redimido') collabMap[creator].red++;
+            });
+
+            let tableHtml = '';
+            for(let name in collabMap) {
+                let g = collabMap[name].gen;
+                let r = collabMap[name].red;
+                let eff = g > 0 ? Math.round((r / g) * 100) : 0;
+                tableHtml += `
+                    <tr>
+                        <td><b>${name}</b></td>
+                        <td>${g}</td>
+                        <td>${r}</td>
+                        <td><b>${eff}%</b></td>
+                    </tr>
+                `;
+            }
+            document.getElementById('collabMetricsTable').innerHTML = tableHtml || `<tr><td colspan="4">Sin registros para estos filtros.</td></tr>`;
+        }
+
+        function renderFunnelFilters() {
+            document.getElementById('filterPromo').innerHTML = '<option value="all">Todas las Campañas</option>' + DB.promos.map(p => `<option value="${p.id}">${p.title} (${p.season})</option>`).join('');
+        }
+
+        function renderFunnel() {
+            let promoId = document.getElementById('filterPromo').value;
+            let list = DB.users.filter(u => u.status !== 'eliminado');
+            if(promoId !== 'all') list = list.filter(u => u.promo_id === promoId);
+
+            let total = list.length;
+            let redeemed = list.filter(u => u.status === 'redimido').length;
+            let now = new Date();
+            let expired = list.filter(u => u.status === 'vencido' || (u.expiry !== 'Sin caducidad' && new Date(u.expiry) < now)).length;
+            let rate = total > 0 ? Math.round((redeemed / total) * 100) : 0;
+
+            document.getElementById('funnelTotal').innerText = total;
+            document.getElementById('funnelRedeemed').innerText = redeemed;
+            document.getElementById('funnelExpired').innerText = expired;
+            document.getElementById('funnelRate').innerText = rate + '%';
+
+            let tiers = ['basico', 'pro', 'elite', 'manual'];
+            let tierHtml = '';
+            tiers.forEach(t => {
+                let tierStores = DB.stores.filter(s => s.tier === t).map(s => s.id);
+                let tBonos = list.filter(u => tierStores.includes(u.store_id));
+                let tTotal = tBonos.length;
+                let tRed = tBonos.filter(u => u.status === 'redimido').length;
+
+                tierHtml += `
+                    <div style="font-size:11px; margin-top:4px;">Nivel <span class="badge badge-${t}">${t.toUpperCase()}</span> (${tRed} redimidos / ${tTotal} asignados)</div>
+                `;
+            });
+            document.getElementById('chartTierContainer').innerHTML = tierHtml;
+        }
+
+        function renderStoreTable() {
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+
+            let storeBonos = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status === 'activo');
+            document.getElementById('estBonosTable').innerHTML = storeBonos.map(u => `
+                <tr style="cursor: pointer;" onclick='selectClientForRedeem(${JSON.stringify(u)})'>
+                    <td><b>${u.beneficiary}</b></td>
+                    <td>${u.promo_title}</td>
+                    <td><span style="color: #fff; font-weight:bold;">ACTIVO</span><br><small style="color:#666;">Exp: ${u.expiry}</small></td>
+                </tr>
+            `).join('') || `<tr><td colspan="3">Sin bonos activos.</td></tr>`;
+        }
+
+        function filterClientSuggestions() {
+            let query = document.getElementById('searchClientInput').value.trim().toLowerCase();
+            let box = document.getElementById('clientSuggestions');
+            if(!query) { box.classList.add('hidden'); return; }
+
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+
+            let matches = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status === 'activo' && u.beneficiary.toLowerCase().includes(query));
+            if(matches.length === 0) {
+                box.innerHTML = '<div class="suggestion-item">No se encontraron clientes activos</div>';
+                box.classList.remove('hidden');
+                return;
+            }
+
+            box.innerHTML = matches.map(u => `
+                <div class="suggestion-item" onclick='selectClientForRedeem(${JSON.stringify(u)})'>
+                    👤 <b>${u.beneficiary}</b> - ${u.promo_title} (Exp: ${u.expiry})
+                </div>
+            `).join('');
+            box.classList.remove('hidden');
+        }
+
+        function selectClientForRedeem(coupon) {
+            selectedTargetCoupon = coupon;
+            document.getElementById('searchClientInput').value = coupon.beneficiary;
+            document.getElementById('clientSuggestions').classList.add('hidden');
+            document.getElementById('lblSelectedInfo').innerText = `Seleccionado: ${coupon.beneficiary} (${coupon.promo_title})`;
+            document.getElementById('selectedClientBox').classList.remove('hidden');
+        }
+
+        async function redeemCouponSecure() {
+            let enteredPhone = document.getElementById('confirmPhoneInput').value.trim();
+            let btn = document.getElementById('btnRedeemAction');
+            if(!selectedTargetCoupon || !enteredPhone) { showToast('Ingresa el PIN'); return; }
+
+            if(String(selectedTargetCoupon.phone).trim() !== enteredPhone) {
+                showToast('PIN incorrecto');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Procesando...";
+
+            await supabaseClient.from('coupons').update({
+                status: 'redimido',
+                redeemed_at: new Date().toISOString()
+            }).eq('id', selectedTargetCoupon.id);
+            
+            document.getElementById('searchClientInput').value = '';
+            document.getElementById('confirmPhoneInput').value = '';
+            document.getElementById('selectedClientBox').classList.add('hidden');
+            selectedTargetCoupon = null;
+
+            await loadData();
+            renderStoreTable();
+            renderStoreFunnel();
+            renderStoreLeads();
+            
+            btn.disabled = false;
+            btn.innerText = "Validar y Redimir";
+            showToast('¡Bono redimido con éxito!');
+        }
+
+        function renderStoreLeads() {
+            if(currentUser.status === 'suspended') return;
+            let season = document.getElementById('leadSeasonFilter').value;
+            let query = document.getElementById('leadSearchInput').value.trim().toLowerCase();
+
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+
+            let redeemedList = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status !== 'eliminado');
+            if(season !== 'all') redeemedList = redeemedList.filter(u => (u.season || '2026-10') === season);
+            if(query) redeemedList = redeemedList.filter(u => u.beneficiary.toLowerCase().includes(query) || u.phone.includes(query));
+
+            let seasonsSet = [...new Set(DB.users.filter(u => targetStoreIds.includes(u.store_id)).map(u => u.season || '2026-10'))];
+            document.getElementById('leadSeasonFilter').innerHTML = '<option value="all">Todas las temporadas</option>' + seasonsSet.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            document.getElementById('storeLeadsTable').innerHTML = redeemedList.map(u => `
+                <tr>
+                    <td><b>${u.beneficiary}</b></td>
+                    <td><code>${u.phone}</code></td>
+                    <td>${u.promo_title}</td>
+                    <td><b style="color:${u.status === 'redimido' ? '#00ff88' : '#aaa'}">${u.status.toUpperCase()}</b><br><small>${u.redeemed_at ? new Date(u.redeemed_at).toLocaleDateString() : 'Pendiente'}</small></td>
+                </tr>
+            `).join('') || `<tr><td colspan="4">Sin registros.</td></tr>`;
+        }
+
+        function exportLeadsCSV() {
+            if(currentUser.status === 'suspended') { alert('Cuenta suspendida.'); return; }
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+            let redeemedList = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status === 'redimido');
+            if(redeemedList.length === 0) { showToast('No hay leads para exportar'); return; }
+
+            let csvContent = "data:text/csv;charset=utf-8,Cliente;Telefono;Campana;FechaRedencion\n";
+            redeemedList.forEach(u => {
+                let row = `"${u.beneficiary}","${u.phone}","${u.promo_title}","${u.redeemed_at || u.created_at}"`;
+                csvContent += row + "\r\n";
+            });
+
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Leads_${currentUser.name}_Apex.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function resetStoreHistory() {
+            if(!confirm('⚠️ ¿Resetear el historial?')) return;
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+            let myRedeemed = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status === 'redimido');
+            for(let b of myRedeemed) {
+                await supabaseClient.from('coupons').update({ status: 'archivado_tienda' }).eq('id', b.id);
+            }
+            await loadData();
+            renderStoreLeads();
+            renderStoreTable();
+            showToast('Historial reseteado');
+        }
+
+        function renderStoreFunnelFilters() {
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+            let storePromos = DB.promos.filter(p => targetStoreIds.includes(p.store_id));
+            document.getElementById('storeFilterPromo').innerHTML = '<option value="all">Todas las campañas</option>' + storePromos.map(p => `<option value="${p.id}">${p.title} (${p.season})</option>`).join('');
+        }
+
+        function renderStoreFunnel() {
+            let promoId = document.getElementById('storeFilterPromo').value;
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+
+            let storeBonos = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status !== 'eliminado' && u.status !== 'archivado_tienda');
+            if(promoId !== 'all') {
+                storeBonos = storeBonos.filter(u => u.promo_id === promoId);
+            }
+
+            let total = storeBonos.length;
+            let redeemed = storeBonos.filter(u => u.status === 'redimido').length;
+            let now = new Date();
+            let expired = storeBonos.filter(u => u.status === 'vencido' || (u.expiry !== 'Sin caducidad' && new Date(u.expiry) < now)).length;
+            let rate = total > 0 ? Math.round((redeemed / total) * 100) : 0;
+
+            document.getElementById('storeMetricAssigned').innerText = total;
+            document.getElementById('storeMetricRedeemed').innerText = redeemed;
+            document.getElementById('storeMetricExpired').innerText = expired;
+            document.getElementById('storeMetricRate').innerText = rate + '%';
+        }
+
+        // Inicialización y recuperación de sesión persistente
+        loadData().then(() => {
+            let savedSession = localStorage.getItem('apex_session');
+            if(savedSession) {
+                try {
+                    currentUser = JSON.parse(savedSession);
+                    startSession();
+                } catch(e) {
+                    localStorage.removeItem('apex_session');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
