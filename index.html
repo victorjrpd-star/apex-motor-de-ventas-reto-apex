@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apex - Sistema de Bonos Pro (Supabase)</title>
+    <title id="appTitleMeta">Apex - Sistema de Bonos Pro (Supabase)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -39,8 +39,10 @@
         .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-around; background: rgba(8, 8, 8, var(--ui-opacity)); padding: 6px; border-radius: 6px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; gap: 4px; border: 1px solid #1a1a1a; backdrop-filter: blur(4px); }
         .nav-btn { background: transparent; color: #777; border: none; font-size: 10px; cursor: pointer; padding: 6px; flex: 1; min-width: 55px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
         .nav-btn.active { color: #fff; border-bottom: 2px solid #fff; font-weight: bold; }
+        
         .coupon-box { position: relative; background-size: cover; background-position: center; border: 2px solid #fff; text-align: center; margin-top: 10px; border-radius: 12px; width: 280px; height: 500px; margin-left: auto; margin-right: auto; color: #fff; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.9); }
         .coupon-overlay { background: rgba(0,0,0, var(--coupon-overlay-alpha)); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 25px 15px; box-sizing: border-box; text-shadow: 0 2px 5px rgba(0,0,0,0.9); transition: background 0.3s ease; }
+        
         .suggestions-box { background: #0a0a0a; border: 1px solid #333; max-height: 150px; overflow-y: auto; text-align: left; margin-bottom: 10px; border-radius: 4px; }
         .suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #1a1a1a; font-size: 13px; transition: background 0.15s; }
         .suggestion-item:hover { background: #1a1a1a; }
@@ -53,16 +55,32 @@
         .badge-elite { background: #002211; color: #00ff88; border-color: #005533; }
         .badge-manual { background: #220022; color: #ff88ff; border-color: #550055; }
         .badge-colaborador { background: #001122; color: #00bbff; border-color: #003366; }
+        
+        /* Sliders estilo Noir (Línea ultrafina sin círculos azules) */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 10px 0; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 1px; cursor: pointer; background: #fff; border: none; }
+        input[type=range]::-webkit-slider-thumb { height: 12px; width: 3px; border-radius: 0px; background: #fff; cursor: pointer; -webkit-appearance: none; margin-top: -5px; }
+
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #fff; color: #000; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 12px; letter-spacing: 1px; box-shadow: 0 5px 20px rgba(255,255,255,0.2); transition: transform 0.3s ease; z-index: 1000; text-transform: uppercase; }
         #toast.show { transform: translateX(-50%) translateY(0); }
+        
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 9999; color: #fff; flex-direction: column; gap: 10px; }
+        .spinner { width: 36px; height: 36px; border: 2px solid #333; border-top: 2px solid #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text" style="font-size: 11px; letter-spacing: 2px;">SINCRONIZANDO DATOS...</div>
+    </div>
+
     <div style="max-width: 500px; margin: 0 auto; text-align: center;">
         <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px;">
-            <img id="globalAppLogo" src="" alt="" style="width: 64px; height: 64px; object-fit: cover; border-radius: 50%; border: 2px solid #fff; display: none;">
-            <h2 style="letter-spacing: 2px; font-size: 15px; margin: 0;">APEX // EMBUDO DE VENTAS</h2>
+            <img id="globalAppLogo" src="" alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 1px solid #fff; display: none;">
+            <h2 id="globalAppTitleDisplay" style="letter-spacing: 2px; font-size: 14px; margin: 0;">APEX // EMBUDO DE VENTAS</h2>
         </div>
         <div id="currentUserBar" class="hidden" style="margin-bottom: 15px;">
             <span id="lblRoleInfo" style="font-size: 12px; color: #777;"></span>
@@ -79,6 +97,7 @@
         </section>
     </div>
 
+    <!-- PANEL ADMINISTRADOR -->
     <section id="adminDashboard" class="hidden">
         <div class="nav-bar">
             <button class="nav-btn active" onclick="switchAdminTab('tabStores')">Usuarios</button>
@@ -100,12 +119,50 @@
                 <option value="pro">Tienda - Pro</option>
                 <option value="elite">Tienda - Élite</option>
                 <option value="manual">Tienda - Manual</option>
-                <option value="colaborador">Colaborador</option>
+                <option value="colaborador">Colaborador Tienda</option>
+                <option value="colaborador_apex">Colaborador Apex</option>
             </select>
-            <button id="btnSaveStore" onclick="saveStore()">Crear Usuario</button>
+
+            <!-- Asignación de Tienda Opcional para Colaboradores -->
+            <div id="adminStoreBindingContainer" class="hidden" style="margin-top:6px;">
+                <label style="font-size:11px; color:#666;">Vincular a Tienda Específica (Opcional):</label>
+                <select id="adminStoreBindingSelect"><option value="">-- Sin tienda fija (Acceso global o múltiple) --</option></select>
+            </div>
+
+            <!-- Vigencia automatizada por calendario o botones rápidos -->
+            <div style="margin-top:8px;">
+                <label style="font-size:11px; color:#666;">Vigencia / Vencimiento Automático:</label>
+                <select id="adminStoreExpiryMode" onchange="toggleAdminExpiryMode()">
+                    <option value="unlimited">Indefinido / Sin vencimiento automático</option>
+                    <option value="quick">Selección Rápida (1 semana, 15 días, 1 mes)</option>
+                    <option value="manual">Manual (Fecha Inicio y Fin exactas)</option>
+                </select>
+            </div>
+
+            <div id="adminQuickExpiryContainer" class="hidden" style="margin-top:6px;">
+                <label style="font-size:10px; color:#666;">Plazo:</label>
+                <select id="adminQuickExpirySelect">
+                    <option value="7">1 Semana (7 días)</option>
+                    <option value="15">15 Días</option>
+                    <option value="30">1 Mes (30 días)</option>
+                </select>
+            </div>
+
+            <div id="adminManualExpiryContainer" class="hidden" style="margin-top:6px; display:flex; gap:6px;">
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:#666;">Inicio:</label>
+                    <input type="date" id="adminStoreStart">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:#666;">Fin:</label>
+                    <input type="date" id="adminStoreEnd">
+                </div>
+            </div>
+
+            <button id="btnSaveStore" onclick="saveStore()" style="margin-top:10px;">Crear Usuario</button>
             <button id="btnCancelStoreEdit" onclick="resetAdminStoreForm()" class="btn-warning hidden" style="margin-top:5px;">Cancelar Edición</button>
             <table>
-                <thead><tr><th>Usuario</th><th>Rol / Nivel</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>Usuario</th><th>Rol / Tienda</th><th>Estado / Vigencia</th><th>Acciones</th></tr></thead>
                 <tbody id="adminStoresTable"></tbody>
             </table>
         </div>
@@ -124,6 +181,8 @@
                 <input type="date" id="promoStart">
                 <input type="date" id="promoEnd">
             </div>
+            <label style="font-size:11px; color:#666;">Mensaje / Felicitación Predeterminado en el Cupón:</label>
+            <textarea id="promoWelcomeText" placeholder="Ej: Felicidades. Reto Apex superado." rows="2" style="resize:vertical;"></textarea>
             <label style="font-size:11px; color:#666;">Términos y Condiciones:</label>
             <textarea id="promoTerms" placeholder="Términos..." rows="2" style="resize:vertical;"></textarea>
             <label style="font-size:11px; color:#666;">Imagen de Fondo (Opcional):</label>
@@ -154,8 +213,15 @@
                 <div id="couponCard" class="coupon-box">
                     <div class="coupon-overlay">
                         <div>
-                            <span style="background:#fff; color:#000; font-size:9px; padding:2px 6px; font-weight:bold;">OFICIAL APEX</span>
-                            <p style="margin:8px 0 2px 0; font-size:11px; color:#ccc; font-style:italic;">Felicidades. Reto Apex superado.</p>
+                            <!-- Logotipo dinámico centrado en la parte superior del bono -->
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-bottom: 6px;">
+                                <div id="couponDynamicLogoWrapper" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000;">
+                                    <img id="couponDynamicLogoImg" src="" alt="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                    <span id="couponDynamicLogoLetter" style="font-size: 12px; font-weight: bold; color: #fff;">A</span>
+                                </div>
+                                <span id="couponPreviewAppName" style="font-size: 9px; font-weight: bold; letter-spacing: 1px; color: #aaa;">APEX BOXING</span>
+                            </div>
+                            <p id="prevWelcomeText" style="margin:4px 0 2px 0; font-size:11px; color:#ccc; font-style:italic;">Felicidades. Reto Apex superado.</p>
                         </div>
                         <div>
                             <h3 id="prevTitle" style="margin:5px 0; font-size:14px; color:#fff; text-transform:uppercase;"></h3>
@@ -168,19 +234,24 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="downloadCard()" style="margin-top:10px;">📥 Descargar Imagen 9:16</button>
+                <button onclick="downloadCard()" style="margin-top:10px;">Descargar Imagen 9:16</button>
             </div>
         </div>
 
         <div id="tabList" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Listado de Bonos Emitidos</h3>
-            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                <button onclick="exportAdminListPDF()" class="btn-action" style="flex:1; background:#003311; color:#00ff88; border-color:#006622;">📥 Descargar Reporte (PDF)</button>
-                <button onclick="resetAdminHistory()" class="btn-warning" style="flex:1;">🔄 Resetear Historial</button>
+            <div style="display: flex; gap: 6px; margin-bottom: 10px; align-items: center;">
+                <select id="exportFormatSelect" style="margin:0; flex:1; font-size:11px;">
+                    <option value="pdf">Formato: PDF Oficial Apex</option>
+                    <option value="word">Formato: Documento Word (.doc)</option>
+                    <option value="excel">Formato: Excel / CSV</option>
+                </select>
+                <button onclick="exportAdminReport()" class="btn-action" style="margin:0; padding:11px 12px;">📥 Descargar</button>
+                <button onclick="resetAdminHistory()" class="btn-warning" style="margin:0; padding:11px 10px;">🔄 Reset</button>
             </div>
             <div id="pdfExportArea">
                 <table>
-                    <thead><tr><th>Cliente / PIN</th><th>Campaña</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <thead><tr><th>Cliente / PIN</th><th>Campaña</th><th>Vigencia</th><th>Estado</th><th>Colaborador</th></tr></thead>
                     <tbody id="adminBonosTable"></tbody>
                 </table>
             </div>
@@ -197,7 +268,6 @@
                 <div class="funnel-card"><small style="font-size:10px; color:#666;">EFICIENCIA</small><span id="funnelRate">0%</span></div>
             </div>
             <div id="chartTierContainer"></div>
-            <div id="chartContainer"></div>
         </div>
 
         <div id="tabCollabs" class="card admin-tab hidden">
@@ -228,24 +298,30 @@
 
         <div id="tabSettings" class="card admin-tab hidden">
             <h3 style="font-size: 13px; color:#aaa; margin-bottom:8px;">Ajustes Globales y Contraseña Admin</h3>
-            <label style="font-size:11px; color:#666;">Nueva Contraseña de Administrador:</label>
+            <label style="font-size:11px; color:#666;">Nombre de la Aplicación Web:</label>
+            <input type="text" id="adminAppNameInput" placeholder="Ej: Apex Boxing">
+            
+            <label style="font-size:11px; color:#666; margin-top:10px; display:block;">Nueva Contraseña de Administrador:</label>
             <input type="password" id="adminNewPass" placeholder="Nueva contraseña de admin">
-            <button onclick="updateAdminPassword()">Actualizar Contraseña Admin</button>
 
             <label style="font-size:11px; color:#666; margin-top:15px; display:block;">Opacidad de Tarjetas y Tablas (20% - 100%):</label>
-            <input type="range" id="rangeUiOpacity" min="0.2" max="1.0" step="0.05" value="0.9" oninput="updateUiOpacityRange(this.value)" onchange="saveOpacitySettings()">
+            <input type="range" id="rangeUiOpacity" min="0.2" max="1.0" step="0.05" value="0.9" oninput="updateUiOpacityRange(this.value)">
             
             <label style="font-size:11px; color:#666; margin-top:10px; display:block;">Opacidad del Fondo del Cupón / Canvas (20% - 100%):</label>
-            <input type="range" id="rangeCouponOpacity" min="0.2" max="1.0" step="0.05" value="0.85" oninput="updateCouponOpacityRange(this.value)" onchange="saveOpacitySettings()">
+            <input type="range" id="rangeCouponOpacity" min="0.2" max="1.0" step="0.05" value="0.85" oninput="updateCouponOpacityRange(this.value)">
+
+            <button onclick="saveOpacitySettings()" style="margin-top:5px;" class="btn-action">Guardar Opacidades</button>
 
             <label style="font-size:11px; color:#666; margin-top:15px; display:block;">Logotipo Global:</label>
             <input type="file" id="appLogoFile" accept="image/*" onchange="uploadGlobalAsset(event, 'logo')">
             <label style="font-size:11px; color:#666;">Fondo o GIF de la Aplicación:</label>
             <input type="file" id="appBgFile" accept="image/*" onchange="uploadGlobalAsset(event, 'bg')">
             <input type="text" id="appBgUrl" placeholder="O pega enlace directo a imagen / GIF" onchange="saveBgUrl(this.value)" style="margin-top:5px;">
+            <button onclick="saveGlobalSettingsName()" style="margin-top:10px;">Guardar Cambios Generales</button>
         </div>
     </section>
 
+    <!-- PANEL TIENDA ALIADA / COLABORADOR -->
     <section id="establishmentDashboard" class="hidden">
         <div class="nav-bar">
             <button class="nav-btn active" onclick="switchStoreTab('storeRedeem')">Validador</button>
@@ -288,7 +364,27 @@
                     <option value="elite">Élite</option>
                     <option value="manual">Manual</option>
                 </select>
-                <button onclick="collabSaveStore()">Crear Tienda</button>
+
+                <!-- Vigencia automatizada para Tiendas desde Colaborador -->
+                <label style="font-size:11px; color:#666; margin-top:6px;">Vigencia Automática:</label>
+                <select id="collabStoreExpiryMode" onchange="toggleCollabExpiryMode()">
+                    <option value="unlimited">Indefinido</option>
+                    <option value="quick">Selección Rápida (1 sem, 15 días, 1 mes)</option>
+                    <option value="manual">Manual (Calendario)</option>
+                </select>
+                <div id="collabQuickExpiryContainer" class="hidden" style="margin-top:4px;">
+                    <select id="collabQuickExpirySelect">
+                        <option value="7">1 Semana (7 días)</option>
+                        <option value="15">15 Días</option>
+                        <option value="30">1 Mes (30 días)</option>
+                    </select>
+                </div>
+                <div id="collabManualExpiryContainer" class="hidden" style="margin-top:4px; display:flex; gap:4px;">
+                    <input type="date" id="collabStoreStart">
+                    <input type="date" id="collabStoreEnd">
+                </div>
+
+                <button onclick="collabSaveStore()" style="margin-top:10px;">Crear Tienda</button>
                 <table>
                     <thead><tr><th>Tienda</th><th>Nivel</th><th>Estado</th><th>Acciones</th></tr></thead>
                     <tbody id="collabStoresTable"></tbody>
@@ -311,6 +407,8 @@
                     <input type="date" id="collabPromoStart">
                     <input type="date" id="collabPromoEnd">
                 </div>
+                <label style="font-size:11px; color:#666;">Mensaje / Felicitación Predeterminado:</label>
+                <textarea id="collabPromoWelcome" rows="2" placeholder="Felicidades. Reto Apex superado."></textarea>
                 <label style="font-size:11px; color:#666;">Términos:</label>
                 <textarea id="collabPromoTerms" rows="2" placeholder="Términos..."></textarea>
                 <label style="font-size:11px; color:#666;">Imagen de Fondo (Opcional):</label>
@@ -343,8 +441,14 @@
                     <div id="collabCouponCard" class="coupon-box">
                         <div class="coupon-overlay">
                             <div>
-                                <span style="background:#fff; color:#000; font-size:9px; padding:2px 6px; font-weight:bold;">APEX COLAB</span>
-                                <p style="margin:8px 0 2px 0; font-size:11px; color:#ccc; font-style:italic;">Bono oficial de colaborador.</p>
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-bottom: 6px;">
+                                    <div id="collabCouponDynamicLogoWrapper" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000;">
+                                        <img id="collabCouponDynamicLogoImg" src="" alt="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                        <span id="collabCouponDynamicLogoLetter" style="font-size: 12px; font-weight: bold; color: #fff;">A</span>
+                                    </div>
+                                    <span id="collabCouponPreviewAppName" style="font-size: 9px; font-weight: bold; letter-spacing: 1px; color: #aaa;">APEX BOXING</span>
+                                </div>
+                                <p id="collabPrevWelcomeText" style="margin:4px 0 2px 0; font-size:11px; color:#ccc; font-style:italic;">Bono oficial de colaborador.</p>
                             </div>
                             <div>
                                 <h3 id="collabPrevTitle" style="margin:5px 0; font-size:14px; color:#fff; text-transform:uppercase;"></h3>
@@ -357,7 +461,7 @@
                             </div>
                         </div>
                     </div>
-                    <button onclick="downloadCollabCard()" style="margin-top:10px;">📥 Descargar Imagen 9:16</button>
+                    <button onclick="downloadCollabCard()" style="margin-top:10px;">Descargar Imagen 9:16</button>
                 </div>
             </div>
         </div>
@@ -385,10 +489,19 @@
                 <label style="font-size:11px; color:#666;">Temporada / Campaña:</label>
                 <select id="leadSeasonFilter" onchange="renderStoreLeads()"><option value="all">Todas las temporadas</option></select>
                 <input type="text" id="leadSearchInput" placeholder="Buscar por nombre o teléfono..." oninput="renderStoreLeads()">
-                <button onclick="exportLeadsCSV()" style="background:#003311; color:#00ff88; border-color:#006622; margin-top:10px;">📥 Descargar Leads (CSV)</button>
+                
+                <div style="display: flex; gap: 6px; margin-top: 10px; align-items: center;">
+                    <select id="storeExportFormatSelect" style="margin:0; flex:1; font-size:11px;">
+                        <option value="pdf">Formato: PDF Oficial Apex</option>
+                        <option value="word">Formato: Documento Word (.doc)</option>
+                        <option value="excel">Formato: Excel / CSV</option>
+                    </select>
+                    <button onclick="exportStoreReport()" class="btn-action" style="margin:0; padding:11px 12px;">📥 Descargar</button>
+                </div>
                 <button onclick="resetStoreHistory()" class="btn-warning" style="margin-top: 5px;">🔄 Resetear Mi Historial</button>
-                <table style="margin-top: 10px;">
-                    <thead><tr><th>Cliente</th><th>Teléfono</th><th>Campaña</th><th>Fecha</th></tr></thead>
+                
+                <table style="margin-top: 10px;" id="storeLeadsTableArea">
+                    <thead><tr><th>Cliente</th><th>Teléfono</th><th>Campaña</th><th>Fecha</th><th>Colaborador</th></tr></thead>
                     <tbody id="storeLeadsTable"></tbody>
                 </table>
             </div>
@@ -417,7 +530,7 @@
         let lastCreatedUser = null;
         let lastCreatedCollabUser = null;
         let selectedTargetCoupon = null;
-        let globalSettings = { logo: '', bg: '', adminPass: 'admin', uiOpacity: 0.9, couponOpacity: 0.85 };
+        let globalSettings = { appName: 'Apex Boxing', logo: '', bg: '', adminPass: 'Apex', uiOpacity: 0.9, couponOpacity: 0.85 };
         let tempPromoBgData = '';
         let tempCollabPromoBgData = '';
 
@@ -426,6 +539,15 @@
             t.innerText = msg;
             t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function showLoading(txt = "SINCRONIZANDO...") {
+            document.getElementById('loading-text').innerText = txt;
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
         }
 
         async function loadData() {
@@ -452,6 +574,32 @@
         }
 
         function applyGlobalAssets() {
+            let appName = globalSettings.appName || 'Apex Boxing';
+            document.getElementById('appTitleMeta').innerText = `${appName} | Embudo`;
+            document.getElementById('globalAppTitleDisplay').innerText = appName.toUpperCase();
+            document.getElementById('couponPreviewAppName').innerText = appName.toUpperCase();
+            document.getElementById('collabCouponPreviewAppName').innerText = appName.toUpperCase();
+
+            let firstLetter = appName.charAt(0).toUpperCase();
+            
+            // Actualizar logos dinámicos en los bonos
+            let imgEl1 = document.getElementById('couponDynamicLogoImg');
+            let letEl1 = document.getElementById('couponDynamicLogoLetter');
+            let imgEl2 = document.getElementById('collabCouponDynamicLogoImg');
+            let letEl2 = document.getElementById('collabCouponDynamicLogoLetter');
+
+            if(globalSettings.logo) {
+                if(imgEl1) { imgEl1.src = globalSettings.logo; imgEl1.style.display = 'block'; }
+                if(letEl1) { letEl1.style.display = 'none'; }
+                if(imgEl2) { imgEl2.src = globalSettings.logo; imgEl2.style.display = 'block'; }
+                if(letEl2) { letEl2.style.display = 'none'; }
+            } else {
+                if(imgEl1) { imgEl1.style.display = 'none'; }
+                if(letEl1) { letEl1.innerText = firstLetter; letEl1.style.display = 'block'; }
+                if(imgEl2) { imgEl2.style.display = 'none'; }
+                if(letEl2) { letEl2.innerText = firstLetter; letEl2.style.display = 'block'; }
+            }
+
             let logoEl = document.getElementById('globalAppLogo');
             if(globalSettings.logo) {
                 logoEl.src = globalSettings.logo;
@@ -466,18 +614,19 @@
                 document.body.style.backgroundImage = 'none';
             }
 
-            // Aplicar opacidades dinámicas globales
             let uiOp = globalSettings.uiOpacity !== undefined ? globalSettings.uiOpacity : 0.9;
             let couponOp = globalSettings.couponOpacity !== undefined ? globalSettings.couponOpacity : 0.85;
 
             document.documentElement.style.setProperty('--ui-opacity', uiOp);
             document.documentElement.style.setProperty('--coupon-overlay-alpha', couponOp);
 
-            // Sincronizar inputs range si existen
             let rUi = document.getElementById('rangeUiOpacity');
             let rCoupon = document.getElementById('rangeCouponOpacity');
             if(rUi) rUi.value = uiOp;
             if(rCoupon) rCoupon.value = couponOp;
+
+            let nameInp = document.getElementById('adminAppNameInput');
+            if(nameInp) nameInp.value = appName;
         }
 
         function updateUiOpacityRange(val) {
@@ -495,6 +644,14 @@
             showToast('Niveles de opacidad guardados');
         }
 
+        async function saveGlobalSettingsName() {
+            let newName = document.getElementById('adminAppNameInput').value.trim();
+            if(newName) globalSettings.appName = newName;
+            await saveGlobalSettingsToSupabase();
+            applyGlobalAssets();
+            showToast('Ajustes guardados');
+        }
+
         async function uploadGlobalAsset(event, type) {
             let file = event.target.files[0];
             if(file) {
@@ -503,6 +660,7 @@
                     if(type === 'logo') globalSettings.logo = e.target.result;
                     if(type === 'bg') globalSettings.bg = e.target.result;
                     await saveGlobalSettingsToSupabase();
+                    applyGlobalAssets();
                 };
                 reader.readAsDataURL(file);
             }
@@ -512,6 +670,7 @@
             if(!url) return;
             globalSettings.bg = url.trim();
             await saveGlobalSettingsToSupabase();
+            applyGlobalAssets();
         }
 
         async function updateAdminPassword() {
@@ -548,28 +707,30 @@
 
             btn.disabled = true;
             btn.innerText = "CARGANDO...";
+            showLoading("INICIANDO SESIÓN...");
 
             try {
-                let { data: storeCheck, error } = await supabaseClient.from('stores').select('*').ilike('name', val).limit(1);
+                await loadData();
+                let { data: storeCheck } = await supabaseClient.from('stores').select('*').ilike('name', val).limit(1);
 
-                if (error) {
-                    await loadData();
-                } else if (storeCheck && storeCheck.length > 0) {
+                if (storeCheck && storeCheck.length > 0) {
                     if(!DB.stores.some(s => s.id === storeCheck[0].id)) {
                         DB.stores.push(storeCheck[0]);
                     }
                 }
 
                 if(val === 'admin') {
-                    let adminCurrentPass = globalSettings.adminPass || 'admin';
+                    let adminCurrentPass = globalSettings.adminPass || 'Apex';
                     if(pass === adminCurrentPass) {
                         currentUser = { role: 'admin', name: 'admin', tier: 'admin', status: 'active' };
                         localStorage.setItem('apex_session', JSON.stringify(currentUser));
                         startSession();
+                        hideLoading();
                         btn.disabled = false;
                         btn.innerText = "Ingresar";
                         return;
                     } else {
+                        hideLoading();
                         showToast('Contraseña de administrador incorrecta');
                         btn.disabled = false;
                         btn.innerText = "Ingresar";
@@ -579,29 +740,46 @@
 
                 let foundStore = DB.stores.find(s => s.name && s.name.trim().toLowerCase() === val);
                 if(foundStore) {
+                    // Validar vigencia de cuenta automáticamente si está configurada
                     if(foundStore.status === 'suspended') {
+                        hideLoading();
                         showToast('⚠️ Esta cuenta se encuentra suspendida.');
                         btn.disabled = false;
                         btn.innerText = "Ingresar";
                         return;
                     }
-                    if(foundStore.tier === 'colaborador') {
-                        currentUser = { role: 'collab', ...foundStore };
-                    } else {
-                        currentUser = { role: 'store', ...foundStore };
+                    if(foundStore.end_date) {
+                        let now = new Date();
+                        let endD = new Date(foundStore.end_date);
+                        endD.setHours(23, 59, 59, 999);
+                        if(now > endD && foundStore.status !== 'suspended') {
+                            // Autosuspendido por expiración de vigencia
+                            await supabaseClient.from('stores').update({ status: 'suspended' }).eq('id', foundStore.id);
+                            foundStore.status = 'suspended';
+                            hideLoading();
+                            showToast('⚠️ La vigencia de esta cuenta ha expirado.');
+                            btn.disabled = false;
+                            btn.innerText = "Ingresar";
+                            return;
+                        }
                     }
+
+                    currentUser = { role: foundStore.tier === 'colaborador' ? 'collab' : 'store', ...foundStore };
                     localStorage.setItem('apex_session', JSON.stringify(currentUser));
                     startSession();
+                    hideLoading();
                     btn.disabled = false;
                     btn.innerText = "Ingresar";
                     return;
                 }
                 
+                hideLoading();
                 showToast('Usuario no encontrado');
                 btn.disabled = false;
                 btn.innerText = "Ingresar";
             } catch(err) {
                 console.error(err);
+                hideLoading();
                 showToast('Error de conexión al iniciar sesión');
                 btn.disabled = false;
                 btn.innerText = "Ingresar";
@@ -624,17 +802,30 @@
                 document.getElementById('lblStoreTierInfo').innerText = `Membresía actual: ${currentUser.tier.toUpperCase()} ${isSuspended ? ' (⚠️ SUSPENDIDA)' : ''}`;
                 
                 let isCollab = currentUser.tier === 'colaborador';
-                document.getElementById('navStores').style.display = isCollab ? 'block' : 'none';
-                document.getElementById('navPromos').style.display = isCollab ? 'block' : 'none';
-                document.getElementById('navEmit').style.display = isCollab ? 'block' : 'none';
-                document.getElementById('navLeads').style.display = 'block';
+                let isApexCollab = currentUser.tier === 'colaborador_apex';
+
+                if(isApexCollab) {
+                    document.getElementById('navStores').style.display = 'none';
+                    document.getElementById('navPromos').style.display = 'none';
+                    document.getElementById('navEmit').style.display = 'none';
+                    document.getElementById('navLeads').style.display = 'block';
+                } else if(isCollab) {
+                    document.getElementById('navStores').style.display = 'block';
+                    document.getElementById('navPromos').style.display = 'block';
+                    document.getElementById('navEmit').style.display = 'block';
+                    document.getElementById('navLeads').style.display = 'block';
+                } else {
+                    document.getElementById('navStores').style.display = 'none';
+                    document.getElementById('navPromos').style.display = 'none';
+                    document.getElementById('navEmit').style.display = 'none';
+                    document.getElementById('navLeads').style.display = 'block';
+                }
 
                 if(isSuspended) {
-                    document.getElementById('redeemCardBox').innerHTML = '<p style="color:#ff4444; font-weight:bold;">⚠️ Tu cuenta se encuentra suspendida.</p>';
+                    document.getElementById('redeemCardBox').innerHTML = '<p style="color:#ff4444; font-weight:bold;">⚠️ Tu cuenta se encuentra suspendida o su vigencia ha caducado.</p>';
                 }
                 renderStoreEverything();
             }
-            loadData();
         }
 
         function logout() {
@@ -708,9 +899,50 @@
         function toggleAdminUserType() {
             let val = document.getElementById('storeTierSelect').value;
             let btn = document.getElementById('btnSaveStore');
+            let bindingContainer = document.getElementById('adminStoreBindingContainer');
+            
             if(!document.getElementById('adminStoreEditId').value) {
-                btn.innerText = (val === 'colaborador') ? "Crear Colaborador" : "Crear Tienda";
+                btn.innerText = (val === 'colaborador' || val === 'colaborador_apex') ? "Crear Colaborador" : "Crear Tienda";
             }
+
+            // Si es colaborador de tienda, permitir vincularlo opcionalmente a una tienda existente
+            if(val === 'colaborador') {
+                bindingContainer.classList.remove('hidden');
+                let validStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin' && s.tier !== 'colaborador' && s.tier !== 'colaborador_apex');
+                document.getElementById('adminStoreBindingSelect').innerHTML = '<option value="">-- Sin tienda fija (Acceso global) --</option>' + validStores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            } else {
+                bindingContainer.classList.add('hidden');
+            }
+        }
+
+        function toggleAdminExpiryMode() {
+            let mode = document.getElementById('adminStoreExpiryMode').value;
+            document.getElementById('adminQuickExpiryContainer').classList.toggle('hidden', mode !== 'quick');
+            document.getElementById('adminManualExpiryContainer').classList.toggle('hidden', mode !== 'manual');
+        }
+
+        function toggleCollabExpiryMode() {
+            let mode = document.getElementById('collabStoreExpiryMode').value;
+            document.getElementById('collabQuickExpiryContainer').classList.toggle('hidden', mode !== 'quick');
+            document.getElementById('collabManualExpiryContainer').classList.toggle('hidden', mode !== 'manual');
+        }
+
+        function calculateExpiryDates(mode, quickSelectId, startInputId, endInputId) {
+            let startDate = null;
+            let endDate = null;
+            let now = new Date();
+
+            if(mode === 'quick') {
+                let days = parseInt(document.getElementById(quickSelectId).value) || 7;
+                startDate = now.toISOString().split('T')[0];
+                let future = new Date();
+                future.setDate(future.getDate() + days);
+                endDate = future.toISOString().split('T')[0];
+            } else if(mode === 'manual') {
+                startDate = document.getElementById(startInputId).value || null;
+                endDate = document.getElementById(endInputId).value || null;
+            }
+            return { startDate, endDate };
         }
 
         async function saveStore() {
@@ -718,17 +950,30 @@
             let btn = document.getElementById('btnSaveStore');
             let name = document.getElementById('storeName').value.trim();
             let tier = document.getElementById('storeTierSelect').value;
+            let boundStoreId = document.getElementById('adminStoreBindingSelect').value || null;
+            let expiryMode = document.getElementById('adminStoreExpiryMode').value;
+
             if(!name) { showToast('Escribe el nombre'); return; }
+
+            let { startDate, endDate } = calculateExpiryDates(expiryMode, 'adminQuickExpirySelect', 'adminStoreStart', 'adminStoreEnd');
             
             btn.disabled = true;
             btn.innerText = "Guardando...";
 
+            let storeObj = {
+                name, tier,
+                store_id: boundStoreId,
+                start_date: startDate,
+                end_date: endDate,
+                status: 'active'
+            };
+
             if(editId) {
-                let { error } = await supabaseClient.from('stores').update({ name, tier }).eq('id', editId);
+                let { error } = await supabaseClient.from('stores').update(storeObj).eq('id', editId);
                 if(error) { alert('Error: ' + error.message); }
                 else { showToast('Usuario actualizado'); }
             } else {
-                let { error } = await supabaseClient.from('stores').insert([{ name, tier, status: 'active' }]);
+                let { error } = await supabaseClient.from('stores').insert([storeObj]);
                 if(error) { alert('Error: ' + error.message); }
                 else { showToast('Usuario creado con éxito'); }
             }
@@ -746,6 +991,19 @@
             document.getElementById('adminStoreEditId').value = s.id;
             document.getElementById('storeName').value = s.name;
             document.getElementById('storeTierSelect').value = s.tier || 'basico';
+            toggleAdminUserType();
+            if(s.store_id) document.getElementById('adminStoreBindingSelect').value = s.store_id;
+
+            if(s.start_date || s.end_date) {
+                document.getElementById('adminStoreExpiryMode').value = 'manual';
+                toggleAdminExpiryMode();
+                document.getElementById('adminStoreStart').value = s.start_date || '';
+                document.getElementById('adminStoreEnd').value = s.end_date || '';
+            } else {
+                document.getElementById('adminStoreExpiryMode').value = 'unlimited';
+                toggleAdminExpiryMode();
+            }
+
             document.getElementById('adminStoreFormTitle').innerText = "Editar Usuario / Tienda";
             document.getElementById('btnSaveStore').innerText = "Actualizar Usuario";
             document.getElementById('btnCancelStoreEdit').classList.remove('hidden');
@@ -755,6 +1013,10 @@
             document.getElementById('adminStoreEditId').value = '';
             document.getElementById('storeName').value = '';
             document.getElementById('storeTierSelect').value = 'basico';
+            document.getElementById('adminStoreExpiryMode').value = 'unlimited';
+            toggleAdminExpiryMode();
+            toggleAdminUserType();
+            document.getElementById('adminStoreBindingContainer').classList.add('hidden');
             document.getElementById('adminStoreFormTitle').innerText = "Gestión de Usuarios (Tiendas y Colaboradores)";
             document.getElementById('btnSaveStore').innerText = "Crear Usuario";
             document.getElementById('btnCancelStoreEdit').classList.add('hidden');
@@ -776,13 +1038,13 @@
 
             await loadData();
             renderAdminEverything();
-            showToast('Estado actualizado (Cascada aplicada)');
+            showToast('Estado actualizado');
         }
 
         async function deleteStore(id) {
             let store = DB.stores.find(s => s.id === id);
             if(store && store.name.trim().toLowerCase() === 'admin') return;
-            if(!confirm('¿Eliminar registro? Se borrarán en cascada sus campañas asociadas.')) return;
+            if(!confirm('¿Eliminar registro? Se borrarán sus campañas asociadas.')) return;
             
             let storePromos = DB.promos.filter(p => p.store_id === id);
             for(let p of storePromos) {
@@ -792,7 +1054,7 @@
             await supabaseClient.from('stores').delete().eq('id', id);
             await loadData();
             renderAdminEverything();
-            showToast('Eliminado en cascada');
+            showToast('Eliminado');
         }
 
         function renderAdminStoresTable() {
@@ -800,13 +1062,14 @@
 
             document.getElementById('adminStoresTable').innerHTML = validStores.map(s => {
                 let badgeClass = s.tier === 'colaborador' ? 'badge-colaborador' : `badge-${s.tier || 'basico'}`;
-                let tierLabel = s.tier === 'colaborador' ? 'COLABORADOR' : (s.tier || 'basico').toUpperCase();
+                let tierLabel = (s.tier || 'basico').toUpperCase();
+                let expiryInfo = s.end_date ? `<br><small style="color:#aaa;">Vence: ${s.end_date}</small>` : '';
                 
                 return `
                     <tr>
-                        <td><b>${s.name}</b></td>
+                        <td><b>${s.name}</b> ${s.store_id ? '<br><small style="color:#00bbff;">[Vinculado]</small>' : ''}</td>
                         <td><span class="badge ${badgeClass}">${tierLabel}</span></td>
-                        <td>${s.status === 'suspended' ? '<span style="color:#ff4444">Suspendido</span>' : '<span style="color:#00ff88">Activo</span>'}</td>
+                        <td>${s.status === 'suspended' ? '<span style="color:#ff4444">Suspendido</span>' : '<span style="color:#00ff88">Activo</span>'}${expiryInfo}</td>
                         <td>
                             <button onclick="toggleSuspendStore('${s.id}')" class="btn-action">${s.status === 'suspended' ? 'ACTIVAR' : 'SUSPENDER'}</button>
                             <button onclick="editAdminStore('${s.id}')" class="btn-action">EDITAR</button>
@@ -836,6 +1099,7 @@
             let stock = stockInput ? parseInt(stockInput) : null;
             let start = document.getElementById('promoStart').value;
             let end = document.getElementById('promoEnd').value;
+            let welcome = document.getElementById('promoWelcomeText').value.trim();
             let terms = document.getElementById('promoTerms').value.trim();
 
             if(!title || !season || !storeId) { showToast('Completa título, tienda y temporada'); return; }
@@ -847,18 +1111,17 @@
                 title, season, store_id: storeId,
                 stock_limit: stock,
                 start_date: start || null, end_date: end || null,
+                welcome_text: welcome || 'Felicidades. Reto Apex superado.',
                 terms: terms || 'Válido en establecimientos participantes.'
             };
             if(tempPromoBgData) promoObj.bg_image = tempPromoBgData;
 
             if(editId) {
-                let { error } = await supabaseClient.from('promos').update(promoObj).eq('id', editId);
-                if(error) { alert('Error: ' + error.message); }
-                else { showToast('Campaña actualizada'); }
+                await supabaseClient.from('promos').update(promoObj).eq('id', editId);
+                showToast('Campaña actualizada');
             } else {
-                let { error } = await supabaseClient.from('promos').insert([{ ...promoObj, status: 'active' }]);
-                if(error) { alert('Error: ' + error.message); }
-                else { showToast('Campaña guardada'); }
+                await supabaseClient.from('promos').insert([{ ...promoObj, status: 'active' }]);
+                showToast('Campaña guardada');
             }
 
             resetAdminPromoForm();
@@ -877,6 +1140,7 @@
             document.getElementById('promoStock').value = p.stock_limit !== null && p.stock_limit !== undefined ? p.stock_limit : '';
             document.getElementById('promoStart').value = p.start_date || '';
             document.getElementById('promoEnd').value = p.end_date || '';
+            document.getElementById('promoWelcomeText').value = p.welcome_text || '';
             document.getElementById('promoTerms').value = p.terms || '';
             tempPromoBgData = p.bg_image || '';
             document.getElementById('adminPromoFormTitle').innerText = "Editar Campaña";
@@ -891,6 +1155,7 @@
             document.getElementById('promoStock').value = '';
             document.getElementById('promoStart').value = '';
             document.getElementById('promoEnd').value = '';
+            document.getElementById('promoWelcomeText').value = '';
             document.getElementById('promoTerms').value = '';
             tempPromoBgData = '';
             document.getElementById('adminPromoFormTitle').innerText = "Gestión de Campañas por Tienda";
@@ -954,24 +1219,10 @@
                     stockDisplay = `Disponibles: <b>${avail}</b> / ${p.stock_limit}`;
                 }
 
-                let countdownStr = 'Sin fecha fin';
-                if(p.end_date) {
-                    let endDate = new Date(p.end_date);
-                    let diffTime = endDate - now;
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    if(diffDays > 0) {
-                        countdownStr = `Quedan ${diffDays} día(s)`;
-                    } else if(diffDays === 0) {
-                        countdownStr = `Expira hoy`;
-                    } else {
-                        countdownStr = `Expirada`;
-                    }
-                }
-
                 return `
                     <tr>
                         <td><b>${p.title}</b><br><small style="color:#aaa;">Stock: ${stockDisplay}</small></td>
-                        <td><b>${st ? st.name : 'N/A'}</b><br>${statusText}<br><small style="color:#777;">${countdownStr}</small></td>
+                        <td><b>${st ? st.name : 'N/A'}</b><br>${statusText}</td>
                         <td>
                             <button onclick="toggleSuspendPromo('${p.id}')" class="btn-action">${p.status === 'suspended' ? 'ACTIVAR' : 'SUSPENDER'}</button>
                             <button onclick="editPromoAdmin('${p.id}')" class="btn-action">EDITAR</button>
@@ -983,16 +1234,12 @@
         }
 
         function renderAdminSelects() {
-            let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin' && s.status !== 'suspended' && s.tier !== 'colaborador');
+            let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin' && s.status !== 'suspended' && s.tier !== 'colaborador' && s.tier !== 'colaborador_apex');
             document.getElementById('promoStoreSelect').innerHTML = activeStores.map(s => `<option value="${s.id}">${s.name} (${s.tier})</option>`).join('');
             
             document.getElementById('manualPromoSelect').innerHTML = DB.promos.filter(p => p.status !== 'suspended').map(p => {
                 let st = DB.stores.find(s => s.id === p.store_id);
-                let stockInfo = '';
-                if(p.stock_limit !== null && p.stock_limit !== undefined) {
-                    stockInfo = ` [Disponibles: ${getDynamicAvailableStock(p.id)}]`;
-                }
-                return `<option value="${p.id}">${p.title} - [Tienda: ${st ? st.name : 'N/A'}]${stockInfo}</option>`;
+                return `<option value="${p.id}">${p.title} - [Tienda: ${st ? st.name : 'N/A'}]</option>`;
             }).join('');
         }
 
@@ -1004,36 +1251,41 @@
         async function collabSaveStore() {
             let name = document.getElementById('collabStoreName').value.trim();
             let tier = document.getElementById('collabStoreTier').value;
+            let expiryMode = document.getElementById('collabStoreExpiryMode').value;
+
             if(!name) { showToast('Ingresa un nombre'); return; }
-            let { error } = await supabaseClient.from('stores').insert([{ name, tier, status: 'active' }]);
+
+            let { startDate, endDate } = calculateExpiryDates(expiryMode, 'collabQuickExpirySelect', 'collabStoreStart', 'collabStoreEnd');
+
+            let storeObj = {
+                name, tier,
+                store_id: currentUser.id, // Vinculado automáticamente a la tienda o colaborador que lo crea
+                start_date: startDate,
+                end_date: endDate,
+                status: 'active'
+            };
+
+            let { error } = await supabaseClient.from('stores').insert([storeObj]);
             if(error) { alert('Error: ' + error.message); return; }
             document.getElementById('collabStoreName').value = '';
             await loadData();
             renderCollabStores();
             renderCollabEmitSelects();
-            showToast('Tienda guardada');
+            showToast('Tienda guardada con éxito');
         }
 
         async function collabToggleSuspendStore(id) {
             let store = DB.stores.find(s => s.id === id);
             if(!store) return;
             let newStatus = store.status === 'suspended' ? 'active' : 'suspended';
-            
             await supabaseClient.from('stores').update({ status: newStatus }).eq('id', id);
-            if(newStatus === 'suspended') {
-                let storePromos = DB.promos.filter(p => p.store_id === id);
-                for(let p of storePromos) {
-                    await supabaseClient.from('promos').update({ status: 'suspended' }).eq('id', p.id);
-                }
-            }
-
             await loadData();
             renderCollabStores();
-            showToast('Estado actualizado (Cascada aplicada)');
+            showToast('Estado actualizado');
         }
 
         function renderCollabStores() {
-            let stores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin' && s.tier !== 'colaborador');
+            let stores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin' && s.tier !== 'colaborador' && s.tier !== 'colaborador_apex');
             document.getElementById('collabStoresTable').innerHTML = stores.map(s => `
                 <tr>
                     <td><b>${s.name}</b></td>
@@ -1056,16 +1308,12 @@
         }
 
         function renderCollabEmitSelects() {
-            let stores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin' && s.tier !== 'colaborador' && s.status !== 'suspended');
+            let stores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin' && s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.status !== 'suspended');
             document.getElementById('collabPromoStoreSelect').innerHTML = stores.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             
             document.getElementById('collabEmitPromoSelect').innerHTML = DB.promos.filter(p => p.status !== 'suspended').map(p => {
                 let st = DB.stores.find(s => s.id === p.store_id);
-                let stockInfo = '';
-                if(p.stock_limit !== null && p.stock_limit !== undefined) {
-                    stockInfo = ` [Disponibles: ${getDynamicAvailableStock(p.id)}]`;
-                }
-                return `<option value="${p.id}">${p.title} (${st ? st.name : 'N/A'})${stockInfo}</option>`;
+                return `<option value="${p.id}">${p.title} (${st ? st.name : 'N/A'})</option>`;
             }).join('');
         }
 
@@ -1083,6 +1331,7 @@
             let stock = stockInput ? parseInt(stockInput) : null;
             let start = document.getElementById('collabPromoStart').value;
             let end = document.getElementById('collabPromoEnd').value;
+            let welcome = document.getElementById('collabPromoWelcome').value.trim();
             let terms = document.getElementById('collabPromoTerms').value.trim();
 
             if(!title || !season || !storeId) { showToast('Completa los campos obligatorios'); return; }
@@ -1091,6 +1340,7 @@
                 title, season, store_id: storeId,
                 stock_limit: stock,
                 start_date: start || null, end_date: end || null,
+                welcome_text: welcome || 'Felicidades. Reto Apex superado.',
                 terms: terms || 'Válido en establecimientos participantes.'
             };
             if(tempCollabPromoBgData) promoObj.bg_image = tempCollabPromoBgData;
@@ -1119,6 +1369,7 @@
             document.getElementById('collabPromoStock').value = p.stock_limit !== null && p.stock_limit !== undefined ? p.stock_limit : '';
             document.getElementById('collabPromoStart').value = p.start_date || '';
             document.getElementById('collabPromoEnd').value = p.end_date || '';
+            document.getElementById('collabPromoWelcome').value = p.welcome_text || '';
             document.getElementById('collabPromoTerms').value = p.terms || '';
             tempCollabPromoBgData = p.bg_image || '';
             document.getElementById('collabPromoFormTitle').innerText = "Editar Campaña";
@@ -1133,6 +1384,7 @@
             document.getElementById('collabPromoStock').value = '';
             document.getElementById('collabPromoStart').value = '';
             document.getElementById('collabPromoEnd').value = '';
+            document.getElementById('collabPromoWelcome').value = '';
             document.getElementById('collabPromoTerms').value = '';
             tempCollabPromoBgData = '';
             document.getElementById('collabPromoFormTitle').innerText = "Crear Campaña";
@@ -1143,10 +1395,9 @@
         function renderCollabPromos() {
             document.getElementById('collabPromosTable').innerHTML = DB.promos.map(p => {
                 let st = DB.stores.find(s => s.id === p.store_id);
-                let stockDisplay = (p.stock_limit !== null && p.stock_limit !== undefined) ? `Disponibles: ${getDynamicAvailableStock(p.id)}/${p.stock_limit}` : 'Ilimitado';
                 return `
                     <tr>
-                        <td>${p.title}<br><small style="color:#aaa;">${stockDisplay}</small></td>
+                        <td>${p.title}</td>
                         <td><b>${st ? st.name : 'N/A'}</b></td>
                         <td>
                             <button onclick="editCollabPromo('${p.id}')" class="btn-action">EDITAR</button>
@@ -1178,26 +1429,12 @@
 
             if(!clientName || !clientPhone) { showToast('Completa nombre y teléfono'); return; }
 
-            let targetPromo = null;
-            if(assignMode === 'manual') {
-                targetPromo = DB.promos.find(p => p.id === promoId);
-            } else {
-                targetPromo = selectWeightedPromo();
-            }
-
+            let targetPromo = assignMode === 'manual' ? DB.promos.find(p => p.id === promoId) : selectWeightedPromo();
             if(!targetPromo || targetPromo.status === 'suspended') { showToast('No hay campañas activas disponibles'); return; }
 
             if(hasActiveCouponForPromo(clientPhone, targetPromo.id)) {
-                alert(`⚠️ Este cliente ya tiene un bono ACTIVO en la campaña "${targetPromo.title}". Solo podrá recibir uno nuevo cuando este expire o sea redimido.`);
+                alert(`⚠️ Este cliente ya tiene un bono ACTIVO en la campaña "${targetPromo.title}".`);
                 return;
-            }
-
-            if(targetPromo.stock_limit !== null && targetPromo.stock_limit !== undefined) {
-                let avail = getDynamicAvailableStock(targetPromo.id);
-                if(avail <= 0) {
-                    alert(`⚠️ La campaña "${targetPromo.title}" ha agotado su stock disponible de cupos.`);
-                    return;
-                }
             }
 
             btn.disabled = true;
@@ -1208,6 +1445,7 @@
                 phone: clientPhone,
                 expiry: targetPromo.end_date || 'Sin caducidad',
                 terms: targetPromo.terms || 'Válido en establecimientos participantes.',
+                welcome_text: targetPromo.welcome_text || 'Bono oficial de colaborador.',
                 promo_id: targetPromo.id,
                 promo_title: targetPromo.title,
                 season: targetPromo.season || '2026-10',
@@ -1218,7 +1456,7 @@
 
             let { error } = await supabaseClient.from('coupons').insert([userObj]);
             if(error) {
-                alert('Error al guardar en base de datos: ' + error.message);
+                alert('Error al guardar: ' + error.message);
                 btn.disabled = false;
                 btn.innerText = "Generar Tarjeta 9:16";
                 return;
@@ -1226,7 +1464,6 @@
 
             lastCreatedCollabUser = userObj;
             await loadData();
-            renderCollabEmitSelects();
 
             if(targetPromo.bg_image) {
                 document.getElementById('collabCouponCard').style.backgroundImage = `url('${targetPromo.bg_image}')`;
@@ -1236,6 +1473,7 @@
 
             document.getElementById('collabPrevTitle').innerText = targetPromo.title;
             document.getElementById('collabPrevClient').innerText = clientName;
+            document.getElementById('collabPrevWelcomeText').innerText = targetPromo.welcome_text || 'Bono oficial de colaborador.';
             document.getElementById('collabPrevTerms').innerText = targetPromo.terms;
             document.getElementById('collabPrevPhone').innerText = `PIN / TEL: ${clientPhone}`;
             document.getElementById('collabPrevExpiry').innerText = `Expira: ${targetPromo.end_date || 'N/A'}`;
@@ -1257,14 +1495,13 @@
         }
 
         function selectWeightedPromo() {
-            let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'admin' && s.name.trim().toLowerCase() !== 'settings_global' && s.status !== 'suspended' && s.tier !== 'manual' && s.tier !== 'colaborador');
+            let activeStores = DB.stores.filter(s => s.name && s.name.trim().toLowerCase() !== 'admin' && s.name.trim().toLowerCase() !== 'settings_global' && s.status !== 'suspended' && s.tier !== 'manual' && s.tier !== 'colaborador' && s.tier !== 'colaborador_apex');
             
             if(activeStores.length === 0) {
                 let fallbackStores = DB.stores.filter(s => s.status !== 'suspended' && s.name && s.name.trim().toLowerCase() !== 'settings_global' && s.name.trim().toLowerCase() !== 'admin');
                 if(fallbackStores.length === 0) return null;
                 let storePromos = DB.promos.filter(p => p.store_id === fallbackStores[0].id && p.status !== 'suspended');
-                let validPromos = storePromos.filter(p => p.stock_limit === null || p.stock_limit === undefined || getDynamicAvailableStock(p.id) > 0);
-                return validPromos.length > 0 ? validPromos[0] : null;
+                return storePromos.length > 0 ? storePromos[0] : null;
             }
 
             let pool = [];
@@ -1275,16 +1512,11 @@
                 
                 let sPromos = DB.promos.filter(p => p.store_id === s.id && p.status !== 'suspended');
                 sPromos.forEach(p => {
-                    if(p.stock_limit === null || p.stock_limit === undefined || getDynamicAvailableStock(p.id) > 0) {
-                        for(let i = 0; i < weight; i++) { pool.push(p); }
-                    }
+                    for(let i = 0; i < weight; i++) { pool.push(p); }
                 });
             });
 
-            let activePromos = DB.promos.filter(p => p.status !== 'suspended' && (p.stock_limit === null || p.stock_limit === undefined || getDynamicAvailableStock(p.id) > 0));
-            if(pool.length === 0 && activePromos.length > 0) return activePromos[0];
             if(pool.length === 0) return null;
-
             return pool[Math.floor(Math.random() * pool.length)];
         }
 
@@ -1296,27 +1528,12 @@
 
             if(!clientName || !clientPhone) { showToast('Completa los campos'); return; }
 
-            let targetPromo = null;
-            if(assignMode === 'manual') {
-                let promoId = document.getElementById('manualPromoSelect').value;
-                targetPromo = DB.promos.find(p => p.id === promoId);
-            } else {
-                targetPromo = selectWeightedPromo();
-            }
-
-            if(!targetPromo || targetPromo.status === 'suspended') { showToast('No hay campañas activas o con stock disponibles'); return; }
+            let targetPromo = assignMode === 'manual' ? DB.promos.find(p => p.id === document.getElementById('manualPromoSelect').value) : selectWeightedPromo();
+            if(!targetPromo || targetPromo.status === 'suspended') { showToast('No hay campañas activas'); return; }
 
             if(hasActiveCouponForPromo(clientPhone, targetPromo.id)) {
-                alert(`⚠️ Este cliente ya tiene un bono ACTIVO en la campaña "${targetPromo.title}". Solo podrá recibir uno nuevo cuando este expire o sea redimido.`);
+                alert(`⚠️ Este cliente ya tiene un bono ACTIVO en la campaña "${targetPromo.title}".`);
                 return;
-            }
-
-            if(targetPromo.stock_limit !== null && targetPromo.stock_limit !== undefined) {
-                let avail = getDynamicAvailableStock(targetPromo.id);
-                if(avail <= 0) {
-                    alert(`⚠️ La campaña "${targetPromo.title}" ha agotado su stock disponible de cupos.`);
-                    return;
-                }
             }
 
             btn.disabled = true;
@@ -1327,6 +1544,7 @@
                 phone: clientPhone,
                 expiry: targetPromo.end_date || 'Sin caducidad',
                 terms: targetPromo.terms || 'Válido en establecimientos participantes.',
+                welcome_text: targetPromo.welcome_text || 'Felicidades. Reto Apex superado.',
                 promo_id: targetPromo.id,
                 promo_title: targetPromo.title,
                 season: targetPromo.season || '2026-10',
@@ -1337,7 +1555,7 @@
 
             let { error } = await supabaseClient.from('coupons').insert([userObj]);
             if(error) {
-                alert('Error al guardar en base de datos: ' + error.message);
+                alert('Error al guardar: ' + error.message);
                 btn.disabled = false;
                 btn.innerText = "Generar Tarjeta 9:16";
                 return;
@@ -1346,7 +1564,6 @@
             lastCreatedUser = userObj;
             await loadData();
             renderAdminTable();
-            renderAdminSelects();
 
             if(targetPromo.bg_image) {
                 document.getElementById('couponCard').style.backgroundImage = `url('${targetPromo.bg_image}')`;
@@ -1356,6 +1573,7 @@
 
             document.getElementById('prevTitle').innerText = targetPromo.title;
             document.getElementById('prevClient').innerText = clientName;
+            document.getElementById('prevWelcomeText').innerText = targetPromo.welcome_text || 'Felicidades. Reto Apex superado.';
             document.getElementById('prevTerms').innerText = targetPromo.terms;
             document.getElementById('prevPhone').innerText = `PIN / TEL: ${clientPhone}`;
             document.getElementById('prevExpiry').innerText = `Expira: ${targetPromo.end_date || 'N/A'}`;
@@ -1385,24 +1603,97 @@
         }
 
         async function resetAdminHistory() {
-            if(!confirm('⚠️ ¿Resetear el historial general de bonos?')) return;
+            if(!confirm('⚠️ ¿Resetear el historial global de bonos (Base de Datos)?')) return;
             await supabaseClient.from('coupons').delete().neq('status', '9999');
             await loadData();
             renderAdminEverything();
-            showToast('Historial reseteado');
+            showToast('Historial global reseteado');
         }
 
-        function exportAdminListPDF() {
-            let element = document.getElementById('pdfExportArea');
-            let opt = {
-                margin:       10,
-                filename:     'Reporte_Bonos_Apex.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().from(element).save();
-            showToast('Generando PDF...');
+        // Sistema de Exportación Multiformato Profesional (PDF, Word, Excel)
+        function exportAdminReport() {
+            let format = document.getElementById('exportFormatSelect').value;
+            let list = DB.users.filter(u => u.status !== 'eliminado');
+            executeReportExport(list, format, 'Reporte_Global_Bonos_Apex');
+        }
+
+        function exportStoreReport() {
+            let format = document.getElementById('storeExportFormatSelect').value;
+            let targetStoreIds = [currentUser.id];
+            if(currentUser.tier === 'colaborador') {
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                targetStoreIds = targetStoreIds.concat(myStores);
+            }
+            let list = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status !== 'eliminado');
+            executeReportExport(list, format, `Reporte_Leads_${currentUser.name}_Apex`);
+        }
+
+        function executeReportExport(list, format, filename) {
+            if(list.length === 0) { showToast('No hay registros para exportar'); return; }
+
+            if(format === 'pdf') {
+                let element = document.getElementById('pdfExportArea');
+                let opt = {
+                    margin:       10,
+                    filename:     filename + '.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2 },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().from(element).save();
+                showToast('Generando PDF...');
+            } else if(format === 'word') {
+                let htmlContent = `
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head><meta charset='utf-8'><title>${filename}</title></head>
+                    <body style='font-family: Arial, sans-serif; color: #000;'>
+                        <h2 style='color: #000;'>${(globalSettings.appName || 'Apex Boxing').toUpperCase()}</h2>
+                        <p style='color: #555;'>REPORTE OFICIAL EJECUTIVO</p>
+                        <table border='1' cellspacing='0' cellpadding='6' style='width:100%; border-collapse:collapse; font-size:12px;'>
+                            <thead>
+                                <tr style='background:#f2f2f2;'>
+                                    <th>Cliente / PIN</th><th>Campaña</th><th>Vigencia</th><th>Estado</th><th>Colaborador</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                list.forEach(u => {
+                    htmlContent += `
+                        <tr>
+                            <td><b>${u.beneficiary}</b> (${u.phone})</td>
+                            <td>${u.promo_title}</td>
+                            <td>${u.expiry || 'N/A'}</td>
+                            <td><b>${u.status.toUpperCase()}</b></td>
+                            <td>${u.created_by || 'Sistema'}</td>
+                        </tr>
+                    `;
+                });
+                htmlContent += `</tbody></table></body></html>`;
+
+                let blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+                let url = URL.createObjectURL(blob);
+                let link = document.createElement('a');
+                link.href = url;
+                link.download = filename + '.doc';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('Documento Word generado');
+            } else if(format === 'excel') {
+                let csvContent = "data:text/csv;charset=utf-8,Cliente;Telefono;Campana;Vigencia;Estado;Colaborador\n";
+                list.forEach(u => {
+                    let row = `"${u.beneficiary}","${u.phone}","${u.promo_title}","${u.expiry || ''}","${u.status}","${u.created_by || 'Sistema'}"`;
+                    csvContent += row + "\r\n";
+                });
+                let encodedUri = encodeURI(csvContent);
+                let link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", filename + ".csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('Reporte Excel (CSV) generado');
+            }
         }
 
         function renderAdminTable() {
@@ -1413,13 +1704,13 @@
                     <td>${u.promo_title}</td>
                     <td>${u.expiry || 'N/A'}</td>
                     <td><b>${u.status.toUpperCase()}</b></td>
-                    <td><button onclick="deleteCoupon('${u.id}')" class="btn-action-danger">ELIMINAR</button></td>
+                    <td>${u.created_by || 'Sistema'}</td>
                 </tr>
             `).join('') || `<tr><td colspan="5">Sin bonos.</td></tr>`;
         }
 
         function renderCollabMetricsFilters() {
-            let collabs = DB.stores.filter(s => s.tier === 'colaborador' && s.status !== 'suspended');
+            let collabs = DB.stores.filter(s => (s.tier === 'colaborador' || s.tier === 'colaborador_apex') && s.status !== 'suspended');
             document.getElementById('collabMetricUser').innerHTML = '<option value="all">Todos los Colaboradores</option>' + collabs.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
             document.getElementById('collabMetricPromo').innerHTML = '<option value="all">Todas las Campañas</option>' + DB.promos.map(p => `<option value="${p.id}">${p.title} (${p.season})</option>`).join('');
             renderCollabMetrics();
@@ -1428,22 +1719,10 @@
         function renderCollabMetrics() {
             let selUser = document.getElementById('collabMetricUser').value;
             let selPromo = document.getElementById('collabMetricPromo').value;
-            let startDate = document.getElementById('collabMetricStart').value;
-            let endDate = document.getElementById('collabMetricEnd').value;
-
             let list = DB.users.filter(u => u.status !== 'eliminado' && u.created_by);
             
             if(selUser !== 'all') list = list.filter(u => u.created_by === selUser);
             if(selPromo !== 'all') list = list.filter(u => u.promo_id === selPromo);
-            if(startDate) {
-                let startD = new Date(startDate);
-                list = list.filter(u => new Date(u.created_at || Date.now()) >= startD);
-            }
-            if(endDate) {
-                let endD = new Date(endDate);
-                endD.setHours(23, 59, 59, 999);
-                list = list.filter(u => new Date(u.created_at || Date.now()) <= endD);
-            }
 
             let totalGen = list.length;
             let totalRed = list.filter(u => u.status === 'redimido').length;
@@ -1473,7 +1752,7 @@
                     </tr>
                 `;
             }
-            document.getElementById('collabMetricsTable').innerHTML = tableHtml || `<tr><td colspan="4">Sin registros para estos filtros.</td></tr>`;
+            document.getElementById('collabMetricsTable').innerHTML = tableHtml || `<tr><td colspan="4">Sin registros.</td></tr>`;
         }
 
         function renderFunnelFilters() {
@@ -1514,7 +1793,7 @@
         function renderStoreTable() {
             let targetStoreIds = [currentUser.id];
             if(currentUser.tier === 'colaborador') {
-                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
                 targetStoreIds = targetStoreIds.concat(myStores);
             }
 
@@ -1535,7 +1814,7 @@
 
             let targetStoreIds = [currentUser.id];
             if(currentUser.tier === 'colaborador') {
-                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
                 targetStoreIds = targetStoreIds.concat(myStores);
             }
 
@@ -1602,57 +1881,38 @@
 
             let targetStoreIds = [currentUser.id];
             if(currentUser.tier === 'colaborador') {
-                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
                 targetStoreIds = targetStoreIds.concat(myStores);
             }
 
-            let redeemedList = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status !== 'eliminado');
-            if(season !== 'all') redeemedList = redeemedList.filter(u => (u.season || '2026-10') === season);
-            if(query) redeemedList = redeemedList.filter(u => u.beneficiary.toLowerCase().includes(query) || u.phone.includes(query));
+            let list = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status !== 'eliminado' && u.status !== 'archivado_tienda');
+            if(season !== 'all') list = list.filter(u => (u.season || '2026-10') === season);
+            if(query) list = list.filter(u => u.beneficiary.toLowerCase().includes(query) || (u.status === 'redimido' && u.phone.includes(query)));
 
             let seasonsSet = [...new Set(DB.users.filter(u => targetStoreIds.includes(u.store_id)).map(u => u.season || '2026-10'))];
             document.getElementById('leadSeasonFilter').innerHTML = '<option value="all">Todas las temporadas</option>' + seasonsSet.map(s => `<option value="${s}">${s}</option>`).join('');
 
-            document.getElementById('storeLeadsTable').innerHTML = redeemedList.map(u => `
-                <tr>
-                    <td><b>${u.beneficiary}</b></td>
-                    <td><code>${u.phone}</code></td>
-                    <td>${u.promo_title}</td>
-                    <td><b style="color:${u.status === 'redimido' ? '#00ff88' : '#aaa'}">${u.status.toUpperCase()}</b><br><small>${u.redeemed_at ? new Date(u.redeemed_at).toLocaleDateString() : 'Pendiente'}</small></td>
-                </tr>
-            `).join('') || `<tr><td colspan="4">Sin registros.</td></tr>`;
-        }
+            document.getElementById('storeLeadsTable').innerHTML = list.map(u => {
+                let isRedeemed = u.status === 'redimido';
+                let displayPhone = isRedeemed ? u.phone : '***-****'; // Oculto hasta que el cliente redima
 
-        function exportLeadsCSV() {
-            if(currentUser.status === 'suspended') { alert('Cuenta suspendida.'); return; }
-            let targetStoreIds = [currentUser.id];
-            if(currentUser.tier === 'colaborador') {
-                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
-                targetStoreIds = targetStoreIds.concat(myStores);
-            }
-            let redeemedList = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status === 'redimido');
-            if(redeemedList.length === 0) { showToast('No hay leads para exportar'); return; }
-
-            let csvContent = "data:text/csv;charset=utf-8,Cliente;Telefono;Campana;FechaRedencion\n";
-            redeemedList.forEach(u => {
-                let row = `"${u.beneficiary}","${u.phone}","${u.promo_title}","${u.redeemed_at || u.created_at}"`;
-                csvContent += row + "\r\n";
-            });
-
-            let encodedUri = encodeURI(csvContent);
-            let link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Leads_${currentUser.name}_Apex.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                return `
+                    <tr>
+                        <td><b>${u.beneficiary}</b></td>
+                        <td><code>${displayPhone}</code></td>
+                        <td>${u.promo_title}</td>
+                        <td><b style="color:${isRedeemed ? '#00ff88' : '#aaa'}">${u.status.toUpperCase()}</b><br><small>${u.redeemed_at ? new Date(u.redeemed_at).toLocaleDateString() : 'Pendiente'}</small></td>
+                        <td>${u.created_by || 'Sistema'}</td>
+                    </tr>
+                `;
+            }).join('') || `<tr><td colspan="5">Sin registros.</td></tr>`;
         }
 
         async function resetStoreHistory() {
-            if(!confirm('⚠️ ¿Resetear el historial?')) return;
+            if(!confirm('⚠️ ¿Resetear tu historial visual local de leads?')) return;
             let targetStoreIds = [currentUser.id];
             if(currentUser.tier === 'colaborador') {
-                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
                 targetStoreIds = targetStoreIds.concat(myStores);
             }
             let myRedeemed = DB.users.filter(u => targetStoreIds.includes(u.store_id) && u.status === 'redimido');
@@ -1662,13 +1922,13 @@
             await loadData();
             renderStoreLeads();
             renderStoreTable();
-            showToast('Historial reseteado');
+            showToast('Historial local reseteado');
         }
 
         function renderStoreFunnelFilters() {
             let targetStoreIds = [currentUser.id];
             if(currentUser.tier === 'colaborador') {
-                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
                 targetStoreIds = targetStoreIds.concat(myStores);
             }
             let storePromos = DB.promos.filter(p => targetStoreIds.includes(p.store_id));
@@ -1679,7 +1939,7 @@
             let promoId = document.getElementById('storeFilterPromo').value;
             let targetStoreIds = [currentUser.id];
             if(currentUser.tier === 'colaborador') {
-                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
+                let myStores = DB.stores.filter(s => s.tier !== 'colaborador' && s.tier !== 'colaborador_apex' && s.name.trim().toLowerCase() !== 'admin').map(s => s.id);
                 targetStoreIds = targetStoreIds.concat(myStores);
             }
 
@@ -1701,7 +1961,9 @@
         }
 
         // Inicialización y recuperación de sesión persistente
+        showLoading("INICIANDO...");
         loadData().then(() => {
+            hideLoading();
             let savedSession = localStorage.getItem('apex_session');
             if(savedSession) {
                 try {
